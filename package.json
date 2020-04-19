@@ -1,0 +1,46 @@
+{
+	"name": "games-bar",
+	"description": "A multiplayer board games bar",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "run-p shim-dev s:dev",
+		"build": "run-s shim-prod s:build",
+		"export": "run-s shim-prod s:export",
+		"s:dev": "sapper dev --no-hot",
+		"s:build": "sapper build",
+		"s:export": "sapper export",
+		"start": "node __sapper__/build",
+		"cy:run": "cypress run",
+		"cy:open": "cypress open",
+		"test": "run-p --race dev cy:run",
+		"shim-prod": "node shimpack.js production",
+		"shim-dev": "nodemon -q -w src/global.css -w src/template-master.html shimpack.js -- development"
+	},
+	"dependencies": {
+		"polka": "next",
+		"serialize-javascript": "^2.1.2",
+		"sirv": "^0.4.0"
+	},
+	"devDependencies": {
+		"@fullhuman/postcss-purgecss": "^1.3.0",
+		"autoprefixer": "^9.7.1",
+		"compression": "^1.7.1",
+		"compression-webpack-plugin": "^3.1.0",
+		"cssnano": "^4.1.10",
+		"file-loader": "^4.2.0",
+		"nodemon": "^2.0.2",
+		"npm-run-all": "^4.1.5",
+		"postcss": "^7.0.21",
+		"postcss-discard-comments": "^4.0.2",
+		"postcss-loader": "^3.0.0",
+		"prettier": "^1.19.1",
+		"purgecss-from-svelte": "^2.0.2",
+		"sapper": "^0.27.0",
+		"style-loader": "^1.0.0",
+		"svelte": "^3.0.0",
+		"svelte-loader": "^2.9.0",
+		"tailwindcss": "^1.2.0",
+		"text-to-svg": "^3.1.5",
+		"webpack": "^4.7.0"
+	}
+}
