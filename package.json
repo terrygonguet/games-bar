@@ -17,9 +17,12 @@
 		"shim-dev": "nodemon -q -w src/global.css -w src/template-master.html shimpack.js -- development"
 	},
 	"dependencies": {
+		"immer": "^6.0.3",
 		"polka": "next",
 		"serialize-javascript": "^2.1.2",
-		"sirv": "^0.4.0"
+		"sirv": "^0.4.0",
+		"socket.io": "^2.3.0",
+		"socket.io-client": "^2.3.0"
 	},
 	"devDependencies": {
 		"@fullhuman/postcss-purgecss": "^1.3.0",

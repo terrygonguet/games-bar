@@ -7,7 +7,7 @@
 </svelte:head>
 
 <main
-  class="flex-center absolute w-full h-full"
+  class="flex-center"
   in:fade={{ duration: 200, delay: 200 }}
   out:fade={{ duration: 200 }}>
   <p>About</p>

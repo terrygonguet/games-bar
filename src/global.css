@@ -18,3 +18,27 @@ body {
 	align-items: center;
 	flex-direction: column;
 }
+
+main {
+	@apply absolute w-full h-full;
+}
+
+.btn {
+	@apply rounded px-4 py-2 font-semibold text-white bg-blue-500;
+}
+
+.btn:hover {
+	@apply bg-blue-400;
+}
+
+.btn:active {
+	@apply bg-blue-600;
+}
+
+.btn:disabled {
+	@apply text-gray-500 bg-blue-600 cursor-default;
+}
+
+.inpt {
+	@apply border px-4 py-2 rounded;
+}
