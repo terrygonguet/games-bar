@@ -66,7 +66,7 @@
 <svelte:window on:mousemove={onMouseMove}/>
 
 <main
-	class="flex-center bg-green-800 text-white overflow-hidden"
+	class="flex items-center flex-col bg-green-800 text-white overflow-x-hidden"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">{capitalized} - {room}</h1>
