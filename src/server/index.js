@@ -3,9 +3,12 @@ import polka from "polka"
 import compression from "compression"
 import * as sapper from "@sapper/server"
 import socketServer from "./socket"
+import { enablePatches } from "immer"
 
 const { PORT, NODE_ENV } = process.env
 const dev = NODE_ENV === "development"
+
+enablePatches()
 
 const app = polka() // You can also use Express
 	.use(
