@@ -14,7 +14,8 @@
 		"cy:open": "cypress open",
 		"test": "run-p --race dev cy:run",
 		"shim-prod": "node shimpack.js production",
-		"shim-dev": "nodemon -q -w src/global.css -w src/template-master.html shimpack.js -- development"
+		"shim-dev": "nodemon -q -w src/global.css -w src/template-master.html shimpack.js -- development",
+		"git-pull": "git pull"
 	},
 	"dependencies": {
 		"immer": "^6.0.3",
