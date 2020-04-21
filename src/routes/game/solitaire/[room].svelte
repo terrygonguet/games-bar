@@ -1,6 +1,7 @@
 <script context="module">
 	export function preload({ path, params, query }) {
-		return { game: params.game, room: params.room }
+		const room = params.room
+		return { room }
 	}
 </script>
 
@@ -11,10 +12,9 @@
 	import { writable } from "svelte/store"
 	import { makeStateFromSocket } from "~stores"
 
-	export let game
 	export let room
 
-	const socket = getSocket(game)
+	const socket = getSocket("solitaire")
 	let state = writable(null) // temp value
 	let mx = 0, my = 0, grid, gridRect, cardX = 0, cardY = 0
 	const emitMoveHand = rateLimit(() => {
@@ -25,7 +25,6 @@
 		})
 	}, 1000 / process.env.RATE_LIMIT)
 
-	$: capitalized = capitalize(game)
 	$: isPlayer = $state && $state.player == socket.id
 	$: {
 		if (isPlayer) {
@@ -80,7 +79,7 @@
 </style>
 
 <svelte:head>
-	<title>Games Bar - {capitalized} - {room}</title>
+	<title>Games Bar - Solitaire - {room}</title>
 </svelte:head>
 
 <svelte:window on:mousemove={onMouseMove}/>
@@ -89,7 +88,7 @@
 	class="flex items-center flex-col bg-green-800 text-white overflow-x-hidden"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
-	<h1 class="text-4xl font-semibold text-center mb-8">{capitalized} - {room}</h1>
+	<h1 class="text-4xl font-semibold text-center mb-8">Solitaire - {room}</h1>
 	
 	{#if $state && $state.state}
 		{#if $state.state == "won"}

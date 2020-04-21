@@ -49,12 +49,6 @@ export default function(nsp) {
 /** @type {Map<string, Room>} */
 const rooms = new Map()
 
-export const rules = [
-	"The game starts with a seven by four grid of face down cards, three more face down in the reserve and one in your hand revealed totalling 32 cards: the four aces and cards from seven to King. As the name implied, this game is played alone so you can start immediately. Above and to the right of the grid you will see ranks and suits, indicating where to place each card. You can swap the card in your hand with the card that is face down where yours is supposed to go. If you pick up anything between a seven and a King you continue to replace cards normally. If you pick up an ace you have to place it in the rightmost column and a new card will be automatically placed from the reserve in your hand.",
-	"The goal of the game is to swap all the cards in the grid with the correct one before revealing all four aces. Once place the last ace the game is over an any card that is still face down is revealed. you win if all the cards are in their place and lose otherwise.",
-	"If you enter a room where someone is already playing you will spectate the game but will not be able to influence anything."
-]
-
 /**
  * @param {SocketIO.Socket} socket
  * @param {SocketIO.Namespace} nsp
