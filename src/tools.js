@@ -18,3 +18,22 @@ export function getSocket(nsp = "") {
 		return socket
 	}
 }
+
+/**
+ * @param {Function} fn
+ * @param {number} ms
+ * @param {Object} options
+ * @param {boolean=} options.useFirstArgs
+ */
+export function rateLimit(fn, ms, { useFirstArgs = false } = {}) {
+	let timeoutID, realArgs
+	return function(...args) {
+		if (realArgs === undefined || !useFirstArgs) realArgs = args
+		if (timeoutID === undefined)
+			timeoutID = setTimeout(() => {
+				fn(...realArgs)
+				timeoutID = undefined
+				realArgs = undefined
+			}, ms)
+	}
+}

@@ -1,6 +1,6 @@
 <script>
 	import { fade } from "svelte/transition";
-	import { availableGames } from "../stores"
+	import { availableGames } from "~stores"
 </script>
 
 <svelte:head>

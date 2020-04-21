@@ -7,7 +7,6 @@ const CompressionPlugin = require("compression-webpack-plugin")
 const mode = process.env.NODE_ENV
 const dev = mode === "development"
 
-const alias = { svelte: path.resolve("node_modules", "svelte") }
 const extensions = [".mjs", ".js", ".json", ".svelte", ".html"]
 const mainFields = ["svelte", "module", "browser", "main"]
 
@@ -18,6 +17,13 @@ function templateDependency({ content, filename }) {
 			? [path.join(__dirname, "src/template.html")]
 			: []
 	}
+}
+
+const alias = {
+	"~server": path.resolve(__dirname, "src/server"),
+	"~tools": path.resolve(__dirname, "src/tools"),
+	"~stores": path.resolve(__dirname, "src/stores"),
+	svelte: path.resolve("node_modules", "svelte")
 }
 
 const client = {

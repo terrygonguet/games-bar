@@ -1,5 +1,5 @@
 import { readable, get } from "svelte/store"
-import { getSocket } from "../tools"
+import { getSocket } from "~tools"
 import { applyPatches } from "immer"
 
 const socket = getSocket()

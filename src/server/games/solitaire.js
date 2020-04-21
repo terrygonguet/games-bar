@@ -11,10 +11,18 @@ import produce from "immer"
  * @property {Card} hand
  * @property {Card[]} aces
  * @property {"playing"|"won"|"lost"} state
+ * @property {string} player
+ * @property {{ x: number, y: number }} cardPos
  */
 
 /**
- * @param {io.Namespace} nsp
+ * @typedef {Object} Room
+ * @property {State} state
+ * @property {SocketIO.Socket[]} sockets
+ */
+
+/**
+ * @param {SocketIO.Namespace} nsp
  */
 export default function(nsp) {
 	nsp.on("connect", socket => {
@@ -26,38 +34,65 @@ export default function(nsp) {
 			console.log(`${socket.id} left solitaire - ${n} connected`)
 		})
 
-		socket.on("join", room => {
-			if (!rooms.has(room)) rooms.set(room, makeState())
-			socket.join(room)
-			console.log(`${socket.id} joined room ${room}`)
+		socket.on("join", roomName => {
+			socket.join(roomName)
+			console.log(`${socket.id} joined room ${roomName}`)
+			if (!rooms.has(roomName)) {
+				rooms.set(roomName, makeRoom(socket))
+				console.log(`Created room ${roomName}`)
+			} else {
+				const room = rooms.get(roomName)
+				room.sockets.push(socket)
+				console.log(
+					`${room.sockets.length} player(s) in room ${roomName}`
+				)
+			}
 		})
 
-		socket.on("leave", room => {
-			socket.leave(room)
-			console.log(`${socket.id} left room ${room}`)
-			if (rooms.has(room)) rooms.delete(room)
+		socket.on("leave", roomName => {
+			socket.leave(roomName)
+			console.log(`${socket.id} left room ${roomName}`)
+			if (rooms.has(roomName)) {
+				const room = rooms.get(roomName)
+				if (room.sockets.length == 1) {
+					rooms.delete(roomName)
+					console.log(`Destroyed room ${roomName}`)
+				} else {
+					room.sockets = room.sockets.filter(s => s !== socket)
+					console.log(
+						`${room.sockets.length} player(s) left in room ${roomName}`
+					)
+				}
+			}
 		})
 
-		socket.on("get_initial_state", (room, ack) => {
-			if (Object.keys(socket.rooms).includes(room) && rooms.has(room))
-				ack(rooms.get(room))
+		socket.on("get_initial_state", (roomName, ack) => {
+			if (rooms.has(roomName)) {
+				const room = rooms.get(roomName)
+				if (room.sockets.includes(socket)) ack(room.state)
+				console.log(`Sent state of room ${roomName} to ${socket.id}`)
+			}
 		})
 
-		socket.on("swap_card", (room, i) => {
-			const state = rooms.get(room)
-			if (!state) return console.error(`Invalid room ${room}`)
-			const patches = []
+		socket.on("swap_card", (roomName, i) => {
+			const { state, sockets } = rooms.get(roomName)
+			if (!state) return console.error(`Invalid room ${roomName}`)
+
+			if (state.player != socket.id)
+				return console.error("Spectators can't play")
+
 			const correct = {
 				suit: suits[Math.floor(i / 7)],
 				rank: (i % 7) + 7
 			}
 			if (!Deck.equals(state.hand, correct))
 				return console.error(
-					`Invalid swap in room ${room}. Expected a ${Deck.stringifyCard(
+					`Invalid swap in room ${roomName}. Expected a ${Deck.stringifyCard(
 						correct
 					)} but got a ${Deck.stringifyCard(state.hand)} instead`
 				)
 
+			const patches = []
 			const next = produce(
 				state,
 				draft => {
@@ -68,25 +103,29 @@ export default function(nsp) {
 				},
 				p => patches.push(...p)
 			)
-			socket.emit("apply_patches", patches)
-			rooms.set(room, next)
+			nsp.to(roomName).emit("apply_patches", patches)
+			rooms.set(roomName, { state: next, sockets })
 		})
 
-		socket.on("place_ace", (room, i) => {
-			const state = rooms.get(room)
-			if (!state) return console.error(`Invalid room ${room}`)
-			const patches = []
+		socket.on("place_ace", (roomName, i) => {
+			const { state, sockets } = rooms.get(roomName)
+			if (!state) return console.error(`Invalid room ${roomName}`)
+
+			if (state.player != socket.id)
+				return console.error("Spectators can't play")
+
 			const correct = {
 				rank: 1,
 				suit: suits[i]
 			}
 			if (!Deck.equals(state.hand, correct))
 				return console.error(
-					`Invalid swap in room ${room}. Expected a ${Deck.stringifyCard(
+					`Invalid swap in room ${roomName}. Expected a ${Deck.stringifyCard(
 						correct
 					)} but got a ${Deck.stringifyCard(state.hand)} instead`
 				)
 
+			const patches = []
 			const next = produce(
 				state,
 				draft => {
@@ -102,19 +141,43 @@ export default function(nsp) {
 				},
 				p => patches.push(...p)
 			)
-			socket.emit("apply_patches", patches)
-			rooms.set(room, next)
+			nsp.to(roomName).emit("apply_patches", patches)
+			rooms.set(roomName, { state: next, sockets })
+		})
+
+		socket.on("move_hand", (roomName, newpos) => {
+			const { state, sockets } = rooms.get(roomName)
+			if (!state) return console.error(`Invalid room ${roomName}`)
+
+			if (state.player != socket.id)
+				return console.error("Spectators can't play")
+
+			const patches = []
+			const next = produce(
+				state,
+				draft => void (draft.cardPos = newpos),
+				p => patches.push(...p)
+			)
+			socket.to(roomName).emit("apply_patches", patches)
+			rooms.set(roomName, { state: next, sockets })
 		})
 	})
 }
 
-/** @type {Map<string, State>} */
+/** @type {Map<string, Room>} */
 const rooms = new Map()
 
+export const rules = [
+	"The game starts with a seven by four grid of face down cards, three more face down in the reserve and one in your hand revealed totalling 32 cards: the four aces and cards from seven to King. As the name implied, this game is played alone so you can start immediately. Above and to the right of the grid you will see ranks and suits, indicating where to place each card. You can swap the card in your hand with the card that is face down where yours is supposed to go. If you pick up anything between a seven and a King you continue to replace cards normally. If you pick up an ace you have to place it in the rightmost column and a new card will be automatically placed from the reserve in your hand.",
+	"The goal of the game is to swap all the cards in the grid with the correct one before revealing all four aces. Once place the last ace the game is over an any card that is still face down is revealed. you win if all the cards are in their place and lose otherwise.",
+	"If you enter a room where someone is already playing you will spectate the game but will not be able to influence anything."
+]
+
 /**
- * @returns {State}
+ * @param {SocketIO.Socket} socket
+ * @returns {Room}
  */
-function makeState() {
+function makeRoom(socket) {
 	const deck = Deck.create({ nbCards: 32, shuffle: true })
 	const grid = [],
 		reserve = []
@@ -127,11 +190,16 @@ function makeState() {
 	grid.push(...Deck.draw(deck, 7, false))
 
 	return {
-		reserve,
-		grid,
-		hand: Deck.drawOne(deck, true),
-		aces: Array(4).fill(null),
-		state: "playing"
+		state: {
+			reserve,
+			grid,
+			hand: Deck.drawOne(deck, true),
+			aces: Array(4).fill(null),
+			state: "playing",
+			player: socket.id,
+			cardPos: { x: 0, y: 0 }
+		},
+		sockets: [socket]
 	}
 }
 

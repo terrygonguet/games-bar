@@ -6,23 +6,42 @@
 
 <script>
 	import { fade } from "svelte/transition"
-	import { capitalize, getSocket } from "../../../tools"
+	import { capitalize, getSocket, rateLimit } from "~tools"
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
-	import { makeStateFromSocket } from "../../../stores"
+	import { makeStateFromSocket } from "~stores"
 
 	export let game
 	export let room
 
 	const socket = getSocket(game)
-	let state = writable({ grid: [] })
-	let mx = 0, my = 0
+	let state = writable({ cardPos: { x: 0.5, y: 0.5 } }) // temp value
+	let mx = 0, my = 0, grid, gridRect, cardX = 0, cardY = 0
+	const emitMoveHand = rateLimit(() => {
+		const { x, y, width, height } = gridRect
+		socket.emit("move_hand", room, {
+			x: (mx - x) / width,
+			y: (my - y) / height
+		})
+	}, 50)
 
 	$: capitalized = capitalize(game)
+	$: isPlayer = $state.player == socket.id
+	$: {
+		if (isPlayer) {
+			cardX = mx
+			cardY = my
+		} else if (gridRect) {
+			cardX = $state.cardPos.x * gridRect.width + gridRect.x
+			cardY = $state.cardPos.y * gridRect.height + gridRect.y
+		}
+	}
 
 	function onMouseMove(e) {
+		if (!isPlayer) return
 		mx = e.clientX
 		my = e.clientY
+		emitMoveHand()
 	}
 
 	function onClickCard(i) {
@@ -42,6 +61,7 @@
 		state = makeStateFromSocket(socket, room)
 		mx = innerWidth / 2
 		my = innerHeight / 2
+		gridRect = grid.getBoundingClientRect()
 		return () => socket.emit("leave", room)
 	})
 </script>
@@ -71,7 +91,7 @@
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">{capitalized} - {room}</h1>
 	<section class="flex m-4 ml-8 relative">
-		<div id="grid" class="m-4 relative">
+		<div id="grid" class="m-4 relative" bind:this={grid}>
 			<div class="absolute left-0 h-full flex justify-evenly transform -translate-x-full text-xl" id="suits">
 				<p>Clubs <span class="text-black">♣️️</span></p>
 				<p>Diamonds <span class="text-red-500">♦️️</span></p>
@@ -107,7 +127,7 @@
 	{#if $state.hand}
 		<div
 			class="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none {cardClasses($state.hand)}"
-			style="top:{my}px;left:{mx}px" />
+			style="top:{cardY}px;left:{cardX}px" />
 	{/if}
 	<p>Reserve</p>
 	<div class="flex gap-4 h-card min-w-card p-4 box-content border rounded">
