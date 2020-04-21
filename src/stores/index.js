@@ -4,11 +4,6 @@ import { applyPatches } from "immer"
 
 const socket = getSocket()
 
-export const availableGames = readable([], set => {
-	socket.emit("request_data", "AVAILABLE_GAMES", set)
-	return () => set([])
-})
-
 /**
  * @param {SocketIO.Socket} socket
  * @param {string} room

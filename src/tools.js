@@ -37,3 +37,27 @@ export function rateLimit(fn, ms, { useFirstArgs = false } = {}) {
 			}, ms)
 	}
 }
+
+/** @typedef {(a: string, b: RequestInit) => Promise<Response>} FetchFn */
+
+/** @typedef {(status: number, message: string) => void} ErrorFn */
+
+/**
+ * @typedef {Object} ServerData
+ * @property {boolean} error
+ * @property {string} message
+ * @property {any} data
+ */
+
+/**
+ * @param {{ fetch: FetchFn, error: ErrorFn }} ctx
+ * @param {string} url
+ * @param {RequestInit=} options
+ */
+export async function easyFetch(ctx, url, options) {
+	const res = await ctx.fetch(url, options)
+	/** @type {ServerData} */
+	const { error, message, data } = await res.json()
+	if (error) ctx.error(res.status, message)
+	else return data
+}
