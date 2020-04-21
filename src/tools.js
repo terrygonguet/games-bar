@@ -13,7 +13,7 @@ const socketMap = new Map()
 export function getSocket(nsp = "") {
 	if (socketMap.has(nsp)) return socketMap.get(nsp)
 	else {
-		const socket = io("/" + nsp, { transports: ["websocket"] })
+		const socket = io("/" + nsp)
 		socketMap.set(nsp, socket)
 		return socket
 	}
