@@ -23,7 +23,7 @@
 			x: (mx - x) / width,
 			y: (my - y) / height
 		})
-	}, 50)
+	}, 1000 / process.env.RATE_LIMIT)
 
 	$: capitalized = capitalize(game)
 	$: isPlayer = $state && $state.player == socket.id

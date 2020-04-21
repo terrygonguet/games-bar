@@ -3,6 +3,9 @@ const path = require("path")
 const config = require("sapper/config/webpack.js")
 const pkg = require("./package.json")
 const CompressionPlugin = require("compression-webpack-plugin")
+const dotenv = require("dotenv")
+
+dotenv.config()
 
 const mode = process.env.NODE_ENV
 const dev = mode === "development"
@@ -25,6 +28,25 @@ const alias = {
 	"~stores": path.resolve(__dirname, "src/stores"),
 	svelte: path.resolve("node_modules", "svelte")
 }
+
+const plugins = [
+	new webpack.DefinePlugin({
+		"process.browser": true,
+		"process.env.NODE_ENV": JSON.stringify(mode),
+		"process.env.RATE_LIMIT": process.env.RATE_LIMIT || 2
+	}),
+	!dev && new CompressionPlugin(),
+	!dev &&
+		new CompressionPlugin({
+			filename: "[path].br[query]",
+			algorithm: "brotliCompress",
+			test: /\.(js|css|html|svg)$/,
+			compressionOptions: { level: 11 },
+			threshold: 10240,
+			minRatio: 0.8,
+			deleteOriginalAssets: false
+		})
+].filter(Boolean)
 
 const client = {
 	mode,
@@ -49,23 +71,7 @@ const client = {
 		]
 	},
 	mode,
-	plugins: [
-		new webpack.DefinePlugin({
-			"process.browser": true,
-			"process.env.NODE_ENV": JSON.stringify(mode)
-		}),
-		!dev && new CompressionPlugin(),
-		!dev &&
-			new CompressionPlugin({
-				filename: "[path].br[query]",
-				algorithm: "brotliCompress",
-				test: /\.(js|css|html|svg)$/,
-				compressionOptions: { level: 11 },
-				threshold: 10240,
-				minRatio: 0.8,
-				deleteOriginalAssets: false
-			})
-	].filter(Boolean),
+	plugins,
 	devtool: dev && "inline-source-map",
 	devServer: {
 		watchContentBase: true
@@ -79,6 +85,7 @@ const server = {
 	target: "node",
 	resolve: { alias, extensions, mainFields },
 	externals: Object.keys(pkg.dependencies).concat("encoding"),
+	plugins,
 	module: {
 		rules: [
 			{

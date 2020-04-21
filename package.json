@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"@polka/send-type": "^0.5.2",
+		"dotenv": "^8.2.0",
 		"immer": "^6.0.3",
 		"polka": "next",
 		"serialize-javascript": "^2.1.2",
