@@ -92,9 +92,15 @@
 	
 	{#if $state && $state.state}
 		{#if $state.state == "won"}
-			<p class="bg-green-500 text-5xl font-bold text-center w-full mb-6">You won!</p>
+			<div class="bg-green-500 text-5xl font-bold w-full mb-6 flex justify-center items-center">
+				<p class="mx-8">You won!</p>
+				<a class="btn text-lg" href="game/solitaire">New game</a>
+			</div>
 		{:else if $state.state == "lost"}
-			<p class="bg-red-500 text-5xl font-bold text-center w-full mb-6">You lost...</p>
+			<div class="bg-red-500 text-5xl font-bold w-full mb-6 flex justify-center items-center">
+				<p class="mx-8">You lost...</p>
+				<a class="btn text-lg" href="game/solitaire">New game</a>
+			</div>
 		{/if}
 	{/if}
 
