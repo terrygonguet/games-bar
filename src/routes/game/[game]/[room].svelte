@@ -41,7 +41,7 @@
 		if (!isPlayer) return
 		mx = e.clientX
 		my = e.clientY
-		if ($state.state == "playing") emitMoveHand()
+		if ($state.state == "playing" && $state.hasSpectator) emitMoveHand()
 	}
 
 	function onClickCard(i) {
