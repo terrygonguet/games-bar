@@ -36,7 +36,6 @@
 			cardY = $state.cardPos.y * gridRect.height + gridRect.y
 		}
 	}
-	$: console.log($state)
 
 	function onMouseMove(e) {
 		if (!isPlayer) return
