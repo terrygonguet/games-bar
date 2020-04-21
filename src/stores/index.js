@@ -14,7 +14,7 @@ export const availableGames = readable([], set => {
  * @param {string} room
  */
 export function makeStateFromSocket(socket, room) {
-	let store = readable({}, function(set) {
+	let store = readable(null, function(set) {
 		socket.emit("get_initial_state", room, set)
 		function onApplyPatches(patches) {
 			set(applyPatches(get(store), patches))

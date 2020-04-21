@@ -15,7 +15,7 @@
 	export let room
 
 	const socket = getSocket(game)
-	let state = writable({ cardPos: { x: 0.5, y: 0.5 } }) // temp value
+	let state = writable(null) // temp value
 	let mx = 0, my = 0, grid, gridRect, cardX = 0, cardY = 0
 	const emitMoveHand = rateLimit(() => {
 		const { x, y, width, height } = gridRect
@@ -26,16 +26,17 @@
 	}, 50)
 
 	$: capitalized = capitalize(game)
-	$: isPlayer = $state.player == socket.id
+	$: isPlayer = $state && $state.player == socket.id
 	$: {
 		if (isPlayer) {
 			cardX = mx
 			cardY = my
-		} else if (gridRect) {
+		} else if (gridRect && $state) {
 			cardX = $state.cardPos.x * gridRect.width + gridRect.x
 			cardY = $state.cardPos.y * gridRect.height + gridRect.y
 		}
 	}
+	$: console.log($state)
 
 	function onMouseMove(e) {
 		if (!isPlayer) return
@@ -91,7 +92,7 @@
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">{capitalized} - {room}</h1>
 	
-	{#if $state.state}
+	{#if $state && $state.state}
 		{#if $state.state == "won"}
 			<p class="bg-green-500 text-5xl font-bold text-center w-full mb-6">You won!</p>
 		{:else if $state.state == "lost"}
@@ -116,7 +117,7 @@
 				<p class="flex-1 text-center">Queen</p>
 				<p class="flex-1 text-center">King</p>
 			</div>
-			{#each $state.grid || [] as card, i}
+			{#each $state ? $state.grid : [] as card, i}
 				<div
 					class={cardClasses(card)}
 					on:click={() => onClickCard(i)} />
@@ -124,7 +125,7 @@
 		</div>
 		<div id="aces" class="rounded bg-red-900 p-4 grid grid-rows-4 gap-4 relative">
 			<p class="text-xl font-bold absolute top-0 w-full text-center transform -translate-y-full">ACES</p>
-			{#each $state.aces || Array(4).fill(null) as card, i}
+			{#each $state ? $state.aces : Array(4).fill(null) as card, i}
 				{#if card}
 					<div class="card suit-{card.suit} rank-{card.rank}" />
 				{:else}
@@ -133,14 +134,14 @@
 			{/each}
 		</div>
 	</section>
-	{#if $state.hand}
+	{#if $state && $state.hand}
 		<div
 			class="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none {cardClasses($state.hand)}"
 			style="top:{cardY}px;left:{cardX}px" />
 	{/if}
 	<p>Reserve</p>
 	<div class="flex gap-4 h-card min-w-card p-4 box-content border rounded">
-		{#each $state.reserve || [] as card}
+		{#each $state ? $state.reserve : [] as card}
 			<div class={cardClasses(card)} />
 		{/each}
 	</div>

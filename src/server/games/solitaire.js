@@ -75,8 +75,9 @@ export default function(nsp) {
 		})
 
 		socket.on("swap_card", (roomName, i) => {
-			const { state, sockets } = rooms.get(roomName)
-			if (!state) return console.error(`Invalid room ${roomName}`)
+			const room = rooms.get(roomName)
+			if (!room) return console.error(`Invalid room ${roomName}`)
+			const { state, sockets } = room
 
 			if (state.player != socket.id)
 				return console.error("Spectators can't play")
@@ -108,8 +109,9 @@ export default function(nsp) {
 		})
 
 		socket.on("place_ace", (roomName, i) => {
-			const { state, sockets } = rooms.get(roomName)
-			if (!state) return console.error(`Invalid room ${roomName}`)
+			const room = rooms.get(roomName)
+			if (!room) return console.error(`Invalid room ${roomName}`)
+			const { state, sockets } = room
 
 			if (state.player != socket.id)
 				return console.error("Spectators can't play")
@@ -146,8 +148,9 @@ export default function(nsp) {
 		})
 
 		socket.on("move_hand", (roomName, newpos) => {
-			const { state, sockets } = rooms.get(roomName)
-			if (!state) return console.error(`Invalid room ${roomName}`)
+			const room = rooms.get(roomName)
+			if (!room) return console.error(`Invalid room ${roomName}`)
+			const { state, sockets } = room
 
 			if (state.player != socket.id)
 				return console.error("Spectators can't play")
