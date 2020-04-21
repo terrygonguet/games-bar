@@ -17,6 +17,12 @@ module.exports = {
 			black: "#000",
 			white: "#fff",
 
+			shadow: {
+				"25": "rgba(0,0,0,0.25)",
+				"75": "rgba(0,0,0,0.75)",
+				default: "rgba(0,0,0,0.5)"
+			},
+
 			gray: {
 				100: "#f7fafc",
 				200: "#edf2f7",

@@ -41,7 +41,7 @@
 		if (!isPlayer) return
 		mx = e.clientX
 		my = e.clientY
-		emitMoveHand()
+		if ($state.state == "playing") emitMoveHand()
 	}
 
 	function onClickCard(i) {
@@ -90,6 +90,15 @@
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">{capitalized} - {room}</h1>
+	
+	{#if $state.state}
+		{#if $state.state == "won"}
+			<p class="bg-green-500 text-5xl font-bold text-center w-full mb-6">You won!</p>
+		{:else if $state.state == "lost"}
+			<p class="bg-red-500 text-5xl font-bold text-center w-full mb-6">You lost...</p>
+		{/if}
+	{/if}
+
 	<section class="flex m-4 ml-8 relative">
 		<div id="grid" class="m-4 relative" bind:this={grid}>
 			<div class="absolute left-0 h-full flex justify-evenly transform -translate-x-full text-xl" id="suits">
@@ -135,15 +144,4 @@
 			<div class={cardClasses(card)} />
 		{/each}
 	</div>
-	{#if $state.state}
-		{#if $state.state == "won"}
-			<div class="absolute top-0 left-0 w-screen h-screen flex-center">
-				<p class="p-12 bg-green-500 text-5xl font-bold text-center rounded-lg">You won!</p>
-			</div>
-		{:else if $state.state == "lost"}
-			<div class="absolute top-0 left-0 w-screen h-screen flex-center">
-				<p class="p-12 bg-red-500 text-5xl font-bold text-center rounded-lg">You lost...</p>
-			</div>
-		{/if}
-	{/if}
 </main>
