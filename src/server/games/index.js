@@ -1,4 +1,4 @@
-import bataille from "./bataille"
 import solitaire from "./solitaire"
+import chess from "./chess"
 
-export default { solitaire }
+export default { solitaire, chess }
