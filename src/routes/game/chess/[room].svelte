@@ -7,10 +7,12 @@
 
 <script>
 	import { fade } from "svelte/transition"
-	import { capitalize, getSocket, rateLimit } from "~tools"
+	import { getSocket } from "~tools"
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
 	import { makeStateFromSocket } from "~stores"
+	import ChessChooseSide from "~components/ChessChooseSide"
+	import ChessBoard from "~components/ChessBoard"
 
 	export let room
 
@@ -29,8 +31,17 @@
 </svelte:head>
 
 <main
-	class="flex items-center flex-col overflow-x-hidden"
+	class="flex items-center flex-col overflow-x-hidden bg-green-800 text-white"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">Chess - {room}</h1>
+	{#if $state}
+		{#if $state.state == "choosing"}
+			<ChessChooseSide {state} {room} />
+		{:else}
+			<ChessBoard {state} {room} />
+		{/if}
+	{:else}
+		<p class="flex-1 flex-center text-4xl">Loading...</p>
+	{/if}
 </main>

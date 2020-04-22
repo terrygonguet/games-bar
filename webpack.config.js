@@ -26,6 +26,7 @@ const alias = {
 	"~server": path.resolve(__dirname, "src/server"),
 	"~tools": path.resolve(__dirname, "src/tools"),
 	"~stores": path.resolve(__dirname, "src/stores"),
+	"~components": path.resolve(__dirname, "src/components"),
 	svelte: path.resolve("node_modules", "svelte")
 }
 

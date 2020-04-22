@@ -22,7 +22,7 @@
 	<h2 class="text-2xl font-semibold my-4">Rules</h2>
 	<section class="max-w-1k text-justify">
 		<p class="my-4">
-			It's <a href="https://en.wikipedia.org/wiki/Chess" target="_blank">chess</a>. You know what chess is.
+			It's <a href="https://en.wikipedia.org/wiki/Chess" target="_blank" class="a">chess</a>. You know what chess is.
 		</p>
 	</section>
 	<form onsubmit="return false">

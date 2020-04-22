@@ -1,5 +1,8 @@
 import io from "socket.io"
 import games from "./games"
+import logger from "~server/logger"
+
+const { log, error } = logger("general")
 
 const requestable = {
 	AVAILABLE_GAMES: Object.keys(games)
@@ -10,15 +13,18 @@ export default function(app) {
 
 	server.on("connection", socket => {
 		const n = Object.keys(server.sockets.sockets).length
-		console.log(`${socket.id} connected - ${n} connected`)
+		log(`${socket.id} connected - ${n} connected`)
 
 		socket.on("disconnect", () => {
 			const n = Object.keys(server.sockets.sockets).length
-			console.log(`${socket.id} disconnected - ${n} connected`)
+			log(`${socket.id} disconnected - ${n} connected`)
 		})
 
 		socket.on("request_data", (key, ack) => {
-			if (Object.keys(requestable).includes(key)) ack(requestable[key])
+			if (Object.keys(requestable).includes(key)) {
+				ack(requestable[key])
+				log(`${socket.id} requested ${key}, ok`)
+			} else error(`${socket.id} requested invalid key ${key}`)
 		})
 	})
 
