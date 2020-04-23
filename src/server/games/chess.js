@@ -314,7 +314,20 @@ const canMove = [
 		return isEmpty(board[j]) || isBlack(board[j])
 	},
 	// white-knight
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		if (
+			(x1 + 2 == x2 && y1 + 1 == y2) ||
+			(x1 + 2 == x2 && y1 - 1 == y2) ||
+			(x1 - 2 == x2 && y1 + 1 == y2) ||
+			(x1 - 2 == x2 && y1 - 1 == y2) ||
+			(x1 + 1 == x2 && y1 + 2 == y2) ||
+			(x1 + 1 == x2 && y1 - 2 == y2) ||
+			(x1 - 1 == x2 && y1 + 2 == y2) ||
+			(x1 - 1 == x2 && y1 - 2 == y2)
+		)
+			return isEmpty(board[j]) || isBlack(board[j])
+	},
 	// white-bishop
 	function([x1, y1, i], [x2, y2, j], board) {
 		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
@@ -384,7 +397,20 @@ const canMove = [
 		return isEmpty(board[j]) || isWhite(board[j])
 	},
 	// black-knight
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		if (
+			(x1 + 2 == x2 && y1 + 1 == y2) ||
+			(x1 + 2 == x2 && y1 - 1 == y2) ||
+			(x1 - 2 == x2 && y1 + 1 == y2) ||
+			(x1 - 2 == x2 && y1 - 1 == y2) ||
+			(x1 + 1 == x2 && y1 + 2 == y2) ||
+			(x1 + 1 == x2 && y1 - 2 == y2) ||
+			(x1 - 1 == x2 && y1 + 2 == y2) ||
+			(x1 - 1 == x2 && y1 - 2 == y2)
+		)
+			return isEmpty(board[j]) || isWhite(board[j])
+	},
 	// black-bishop
 	function([x1, y1, i], [x2, y2, j], board) {
 		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
