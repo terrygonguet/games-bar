@@ -118,7 +118,7 @@ function leaveRoom(socket) {
 				rlog(roomName, `Destroyed room`)
 			} else {
 				room.sockets = room.sockets.filter(s => s !== socket)
-				log(roomName, `${room.sockets.length} player(s) in room`, {
+				rlog(roomName, `${room.sockets.length} player(s) in room`, {
 					level: "verbose"
 				})
 			}

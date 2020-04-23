@@ -30,25 +30,26 @@ const alias = {
 	svelte: path.resolve("node_modules", "svelte")
 }
 
-const plugins = [
-	new webpack.DefinePlugin({
-		"process.browser": true,
-		"process.dev": dev,
-		"process.env.NODE_ENV": JSON.stringify(mode),
-		"process.env.RATE_LIMIT": process.env.RATE_LIMIT || 2
-	}),
-	!dev && new CompressionPlugin(),
-	!dev &&
-		new CompressionPlugin({
-			filename: "[path].br[query]",
-			algorithm: "brotliCompress",
-			test: /\.(js|css|html|svg)$/,
-			compressionOptions: { level: 11 },
-			threshold: 10240,
-			minRatio: 0.8,
-			deleteOriginalAssets: false
-		})
-].filter(Boolean)
+const plugins = (server = false) =>
+	[
+		new webpack.DefinePlugin({
+			"process.browser": !server,
+			"process.dev": dev,
+			"process.env.NODE_ENV": JSON.stringify(mode),
+			"process.env.RATE_LIMIT": process.env.RATE_LIMIT || 2
+		}),
+		!dev && new CompressionPlugin(),
+		!dev &&
+			new CompressionPlugin({
+				filename: "[path].br[query]",
+				algorithm: "brotliCompress",
+				test: /\.(js|css|html|svg)$/,
+				compressionOptions: { level: 11 },
+				threshold: 10240,
+				minRatio: 0.8,
+				deleteOriginalAssets: false
+			})
+	].filter(Boolean)
 
 const client = {
 	mode,
@@ -73,7 +74,7 @@ const client = {
 		]
 	},
 	mode,
-	plugins,
+	plugins: plugins(false),
 	devtool: dev && "inline-source-map",
 	devServer: {
 		watchContentBase: true
@@ -87,7 +88,7 @@ const server = {
 	target: "node",
 	resolve: { alias, extensions, mainFields },
 	externals: Object.keys(pkg.dependencies).concat("encoding"),
-	plugins,
+	plugins: plugins(true),
 	module: {
 		rules: [
 			{

@@ -792,14 +792,16 @@ module.exports = {
 						[
 							`.white-${s}`,
 							{
-								backgroundPositionX: `${-i * pieceW}px`
+								backgroundPositionX: `calc(var(--chess-scale) * ${-i *
+									pieceW}px)`
 							}
 						],
 						[
 							`.black-${s}`,
 							{
-								backgroundPositionX: `${-i * pieceW}px`,
-								backgroundPositionY: `${-pieceH}px`
+								backgroundPositionX: `calc(var(--chess-scale) * ${-i *
+									pieceW}px)`,
+								backgroundPositionY: `calc(var(--chess-scale) * ${-pieceH}px)`
 							}
 						]
 					]
@@ -809,30 +811,31 @@ module.exports = {
 			addComponents({
 				".piece": {
 					backgroundImage: `url(${imgUrl})`,
-					width: `${pieceW}px`,
-					height: `${pieceH}px`
+					width: `calc(var(--chess-scale) * ${pieceW}px)`,
+					height: `calc(var(--chess-scale) * ${pieceH}px)`,
+					backgroundSize: `calc(var(--chess-scale) * ${imgW}px)`
 				},
 				...pieces
 			})
 
 			addUtilities({
 				".w-piece": {
-					width: `${pieceW}px`
+					width: `calc(var(--chess-scale) * ${pieceW}px)`
 				},
 				".h-piece": {
-					height: `${pieceH}px`
+					height: `calc(var(--chess-scale) * ${pieceH}px)`
 				},
 				".min-w-piece": {
-					minWidth: `${pieceW}px`
+					minWidth: `calc(var(--chess-scale) * ${pieceW}px)`
 				},
 				".min-h-piece": {
-					minHeight: `${pieceH}px`
+					minHeight: `calc(var(--chess-scale) * ${pieceH}px)`
 				},
 				".max-w-piece": {
-					maxWidth: `${pieceW}px`
+					maxWidth: `calc(var(--chess-scale) * ${pieceW}px)`
 				},
 				".max-h-piece": {
-					maxHeight: `${pieceH}px`
+					maxHeight: `calc(var(--chess-scale) * ${pieceH}px)`
 				}
 			})
 		})

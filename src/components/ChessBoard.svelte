@@ -11,6 +11,11 @@
 		"black-pawn", "black-rook", "black-knight", "black-bishop", "black-queen", "black-king"
 	]
 	const socket = getSocket("chess")
+	let scale = 1
+
+	if (process.browser) {
+		if (innerHeight < 1000) scale = innerHeight / 1100
+	}
 
 	$: isWhite = $state.player1 == socket.id
 	$: flipedBoard = isWhite ? $state.board : flipBoard($state.board)
@@ -61,7 +66,7 @@
 }
 </style>
 
-<section class="m-4 flex">
+<section class="m-4 flex" style="--chess-scale:{scale}">
 	<div id="board">
 		{#each flipedBoard as cell, i}
 			<div
