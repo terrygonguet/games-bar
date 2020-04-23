@@ -17,8 +17,9 @@
 	$: yourTurn = ($state.turn + (isWhite ? 0 : 1)) % 2
 
 	function cellColor(i) {
-		if (Math.floor(i / 8) % 2) return i % 2 ? "bg-orange-400" : "bg-yellow-900"
-		else return i % 2 ? "bg-yellow-900" : "bg-orange-400"
+		const j = isWhite ? 0 : 1
+		if (Math.floor(i / 8) % 2) return (i + j) % 2 ? "bg-orange-400" : "bg-yellow-900"
+		else return (i + j) % 2 ? "bg-yellow-900" : "bg-orange-400"
 	}
 
 	function flipBoard(board) {
