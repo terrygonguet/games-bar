@@ -197,7 +197,7 @@ function select(socket, nsp) {
  * @returns {(roomName: string, from: number, to: number) => void}
  */
 function move(socket, nsp) {
-	return (roomName, i) => {
+	return (roomName, from, to) => {
 		const room = rooms.get(roomName)
 		if (!room) return error(`Invalid room ${roomName}`)
 		const { state, sockets } = room
@@ -209,6 +209,18 @@ function move(socket, nsp) {
 			state,
 			draft => {
 				draft.selected = -1
+				const a = [from % 8, Math.floor(from / 8), from]
+				const b = [to % 8, Math.floor(to / 8), to]
+				const piece = state.board[from]
+				if (canMove[piece](a, b, state.board)) {
+					draft.board[to] = piece
+					draft.board[from] = null
+					draft.turn++
+				} else
+					rerror(
+						roomName,
+						`${socket.id} attempted an invalid move from ${from} to ${to}`
+					)
 			},
 			p => patches.push(...p)
 		)
@@ -251,6 +263,80 @@ const pieces = [
 	"black-bishop",
 	"black-queen",
 	"black-king"
+]
+
+/** @typedef {[number,number,number]} Pos */
+
+/** @typedef {(from: Pos, to: Pos, board: number[]) => boolean} MoveValidator */
+
+/** @type {MoveValidator[]} */
+const canMove = [
+	// white pawn
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 >= y1) return false
+		// first move
+		if (y1 == 6 && y2 == y1 - 2 && x1 == x2)
+			return isEmpty(board[j]) && isEmpty(board[y1 * 8 - 8 + x1])
+		if (Math.abs(x1 - x2) > 1 || y2 != y1 - 1) return false
+		if (x1 == x2) return isEmpty(board[j])
+		else return isBlack(board[j])
+	},
+	// white-rook
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0) return false
+		if ((x1 != x2 && y1 != y2) || (x1 == x2 && y1 == y2)) return false
+		if (x1 == x2) {
+			const delta = Math.sign(y2 - y1)
+			for (let k = y1 + delta; k < y2; k += delta)
+				if (!isEmpty(board[k * 8 + x1])) return false
+		} else {
+			const delta = Math.sign(x2 - x1)
+			for (let k = x1 + delta; k < x2; k += delta)
+				if (!isEmpty(board[y1 * 8 + k])) return false
+		}
+		return isEmpty(board[j]) || isBlack(board[j])
+	},
+	// white-knight
+	() => false,
+	// white-bishop
+	() => false,
+	// white-queen
+	() => false,
+	// white-king
+	() => false,
+	// black-pawn
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 <= y1) return false
+		// first move
+		if (y1 == 1 && y2 == y1 + 2 && x1 == x2)
+			return isEmpty(board[j]) && isEmpty(board[y1 * 8 + 8 + x1])
+		if (Math.abs(x1 - x2) > 1 || y2 != y1 + 1) return false
+		if (x1 == x2) return isEmpty(board[j])
+		else return isWhite(board[j])
+	},
+	// black-rook
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0) return false
+		if ((x1 != x2 && y1 != y2) || (x1 == x2 && y1 == y2)) return false
+		if (x1 == x2) {
+			const delta = Math.sign(y2 - y1)
+			for (let k = y1 + delta; k < y2; k += delta)
+				if (!isEmpty(board[k * 8 + x1])) return false
+		} else {
+			const delta = Math.sign(x2 - x1)
+			for (let k = x1 + delta; k < x2; k += delta)
+				if (!isEmpty(board[y1 * 8 + k])) return false
+		}
+		return isEmpty(board[j]) || isWhite(board[j])
+	},
+	// black-knight
+	() => false,
+	// black-bishop
+	() => false,
+	// black-queen
+	() => false,
+	// black-king
+	() => false
 ]
 
 function makeBoard() {
@@ -337,7 +423,28 @@ function isYourTurn(state, id) {
  * @param {number} i
  */
 function isYourPiece(state, id, i) {
-	if (id == state.player1) return state.board[i] <= 5
-	else if (id == state.player2) return state.board[i] > 5
+	if (id == state.player1) return isWhite(state.board[i])
+	else if (id == state.player2) return isBlack(state.board[i])
 	else return false
+}
+
+/**
+ * @param {number} piece
+ */
+function isWhite(piece) {
+	return piece !== null && piece <= 5
+}
+
+/**
+ * @param {number} piece
+ */
+function isBlack(piece) {
+	return piece !== null && piece > 5
+}
+
+/**
+ * @param {number} piece
+ */
+function isEmpty(piece) {
+	return piece === null
 }

@@ -13,7 +13,7 @@
 	const socket = getSocket("chess")
 
 	$: isWhite = $state.player1 == socket.id
-	$: rotatedBoard = isWhite ? $state.board : rotate($state.board)
+	$: flipedBoard = isWhite ? $state.board : flipBoard($state.board)
 	$: yourTurn = ($state.turn + (isWhite ? 0 : 1)) % 2
 
 	function cellColor(i) {
@@ -21,7 +21,7 @@
 		else return i % 2 ? "bg-yellow-900" : "bg-orange-400"
 	}
 
-	function rotate(board) {
+	function flipBoard(board) {
 		return produce(board, draft => {
 			const rows = Array(8).fill().map((_, i) => draft.slice(i * 8, i * 8 + 8))
 			rows.reverse()
@@ -31,19 +31,24 @@
 
 	function onClick(i) {
 		return () => {
+			console.log(i)
 			if (!yourTurn) return
-			if ($state.selected == -1) socket.emit("select", room, i)
-			else if (i == $state.selected) socket.emit("select", room, -1)
-			else socket.emit("move", room, $state.selected, i)
+			if ($state.selected == -1) socket.emit("select", room, realPosition(i))
+			else if (realPosition(i) == $state.selected) socket.emit("select", room, -1)
+			else socket.emit("move", room, $state.selected, realPosition(i))
 		}
 	}
 
 	function isSelected(i) {
-		if (isWhite) return $state.selected == i
-		else {
-			const y = Math.floor(i / 8)
-			return $state.selected == Math.abs(y - 7) * 8 + (i % 8)
-		}
+		return $state.selected == realPosition(i)
+	}
+
+	function realPosition(i) {
+		return isWhite ? i : flipPosition(i)
+	}
+
+	function flipPosition(i) {
+		return -(Math.floor(i / 8) - 7) * 8 + (i % 8)
 	}
 </script>
 
@@ -57,7 +62,7 @@
 
 <section class="m-4 flex">
 	<div id="board">
-		{#each rotatedBoard as cell, i}
+		{#each flipedBoard as cell, i}
 			<div
 				class="w-piece h-piece {cellColor(i)}"
 				on:click={onClick(i)}>
