@@ -778,6 +778,63 @@ module.exports = {
 					maxHeight: `${cardH}px`
 				}
 			})
+		}),
+		plugin(({ addComponents, addUtilities }) => {
+			const imgUrl = "img/chess.png"
+			const imgW = 600,
+				imgH = 200,
+				pieceW = imgW / 6,
+				pieceH = imgH / 2
+
+			const pieces = Object.fromEntries(
+				["king", "queen", "bishop", "knight", "rook", "pawn"].flatMap(
+					(s, i) => [
+						[
+							`.white-${s}`,
+							{
+								backgroundPositionX: `${-i * pieceW}px`
+							}
+						],
+						[
+							`.black-${s}`,
+							{
+								backgroundPositionX: `${-i * pieceW}px`,
+								backgroundPositionY: `${-pieceH}px`
+							}
+						]
+					]
+				)
+			)
+
+			addComponents({
+				".piece": {
+					backgroundImage: `url(${imgUrl})`,
+					width: `${pieceW}px`,
+					height: `${pieceH}px`
+				},
+				...pieces
+			})
+
+			addUtilities({
+				".w-piece": {
+					width: `${pieceW}px`
+				},
+				".h-piece": {
+					height: `${pieceH}px`
+				},
+				".min-w-piece": {
+					minWidth: `${pieceW}px`
+				},
+				".min-h-piece": {
+					minHeight: `${pieceH}px`
+				},
+				".max-w-piece": {
+					maxWidth: `${pieceW}px`
+				},
+				".max-h-piece": {
+					maxHeight: `${pieceH}px`
+				}
+			})
 		})
 	]
 }

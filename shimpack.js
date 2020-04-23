@@ -37,7 +37,20 @@ const purgeCSSPlugin = PurgeCSS({
 		"rank-12",
 		"rank-13",
 		"card-back",
-		"card"
+		"card",
+		"piece",
+		"white-king",
+		"white-queen",
+		"white-bishop",
+		"white-rook",
+		"white-knight",
+		"white-pawn",
+		"black-king",
+		"black-queen",
+		"black-bishop",
+		"black-rook",
+		"black-knight",
+		"black-pawn"
 	]
 })
 

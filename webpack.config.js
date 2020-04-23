@@ -33,6 +33,7 @@ const alias = {
 const plugins = [
 	new webpack.DefinePlugin({
 		"process.browser": true,
+		"process.dev": dev,
 		"process.env.NODE_ENV": JSON.stringify(mode),
 		"process.env.RATE_LIMIT": process.env.RATE_LIMIT || 2
 	}),
