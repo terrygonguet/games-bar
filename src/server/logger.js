@@ -1,22 +1,53 @@
-export default function logger(game) {
+import chalk from "chalk"
+
+/** @typedef {"info"|"warn"|"error"|"verbose"} LogLevel */
+
+/**
+ * @param {string} game
+ * @param {LogLevel[]} levels
+ */
+export default function logger(game, levels) {
+	if (levels === undefined) {
+		levels = ["error", "warn", "info"]
+		if (process.dev) levels.push("verbose")
+	}
+	const l = levels.reduce((acc, cur) => Math.max(acc, cur.length), 0)
+	const ctx = new chalk.Instance({ level: 1 })
+	/** @type {Object<string,chalk.Chalk>} */
+	const colors = {
+		error: ctx.red,
+		warn: ctx.yellow,
+		info: ctx.white,
+		verbose: ctx.gray
+	}
+
 	return {
-		log(...args) {
+		/**
+		 * @param {any} obj
+		 * @param {Object} options
+		 * @param {LogLevel} options.level
+		 */
+		log(obj, { level = "info" } = {}) {
 			const now = new Date().toISOString()
-			for (const arg of args) console.log(`[${now}] [${game}] ${arg}`)
+			console.log(
+				colors[level](`[${now}] [${level.padEnd(l)}] [${game}] ${obj}`)
+			)
 		},
-		logRoom(roomName, ...args) {
+		/**
+		 * @param {string} roomName
+		 * @param {any} obj
+		 * @param {Object} options
+		 * @param {LogLevel} options.level
+		 */
+		logRoom(roomName, obj, { level = "info" } = {}) {
 			const now = new Date().toISOString()
-			for (const arg of args)
-				console.log(`[${now}] [${game}] [${roomName}] ${arg}`)
-		},
-		error(...args) {
-			const now = new Date().toISOString()
-			for (const arg of args) console.error(`[${now}] [${game}] ${arg}`)
-		},
-		errorRoom(roomName, ...args) {
-			const now = new Date().toISOString()
-			for (const arg of args)
-				console.error(`[${now}] [${game}] [${roomName}] ${arg}`)
+			console.log(
+				colors[level](
+					`[${now}] [${level.padEnd(
+						l
+					)}] [${game}] [${roomName}] ${obj}`
+				)
+			)
 		}
 	}
 }
