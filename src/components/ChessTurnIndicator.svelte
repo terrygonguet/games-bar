@@ -1,12 +1,15 @@
 <script>
+	export let isPlayer
 	export let isWhite
 	export let turn
 
-	$: yourTurn = (turn + (isWhite ? 0 : 1)) % 2
+	$: yourTurn = isPlayer && (turn + (isWhite ? 0 : 1)) % 2
 </script>
 
 <h2 class="text-2xl font-semibold">
-	You are {isWhite ? "white" : "black"} -
+	{#if isPlayer}
+		You are {isWhite ? "white" : "black"} -
+	{/if}
 	Turn {turn}
 </h2>
 {#if yourTurn}

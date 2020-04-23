@@ -17,9 +17,10 @@
 		if (innerHeight < 1000) scale = innerHeight / 1100
 	}
 
-	$: isWhite = $state.player1 == socket.id
+	$: isPlayer = $state.player1 == socket.id || $state.player2 == socket.id
+	$: isWhite = !isPlayer || $state.player1 == socket.id
 	$: flipedBoard = isWhite ? $state.board : flipBoard($state.board)
-	$: yourTurn = ($state.turn + (isWhite ? 0 : 1)) % 2
+	$: yourTurn = isPlayer && ($state.turn + (isWhite ? 0 : 1)) % 2
 
 	function cellColor(i) {
 		const j = isWhite ? 0 : 1
@@ -37,7 +38,6 @@
 
 	function onClick(i) {
 		return () => {
-			console.log(i)
 			if (!yourTurn) return
 			if ($state.selected == -1) socket.emit("select", room, realPosition(i))
 			else if (realPosition(i) == $state.selected) socket.emit("select", room, -1)
@@ -81,4 +81,4 @@
 		{/each}
 	</div>
 </section>
-<ChessTurnIndicator {isWhite} turn={$state.turn} />
+<ChessTurnIndicator {isPlayer} {isWhite} turn={$state.turn} />
