@@ -50,7 +50,9 @@ const purgeCSSPlugin = PurgeCSS({
 		"black-bishop",
 		"black-rook",
 		"black-knight",
-		"black-pawn"
+		"black-pawn",
+		"bg-yellow-900",
+		"bg-orange-400"
 	]
 })
 

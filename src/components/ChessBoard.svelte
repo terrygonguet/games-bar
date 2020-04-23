@@ -24,8 +24,8 @@
 
 	function cellColor(i) {
 		const j = isWhite ? 0 : 1
-		if (Math.floor(i / 8) % 2) return (i + j) % 2 ? "bg-orange-400" : "bg-yellow-900"
-		else return (i + j) % 2 ? "bg-yellow-900" : "bg-orange-400"
+		if (Math.floor(i / 8) % 2) return (i + j) % 2
+		else return (i + j + 1) % 2
 	}
 
 	function flipBoard(board) {
@@ -70,7 +70,7 @@
 	<div id="board">
 		{#each flipedBoard as cell, i}
 			<div
-				class="w-piece h-piece {cellColor(i)}"
+				class="w-piece h-piece {cellColor(i) ? "bg-yellow-900" : "bg-orange-400"}"
 				on:click={onClick(i)}>
 				{#if cell !== null}
 					<div
