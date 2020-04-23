@@ -3,7 +3,7 @@ import { Deck, suits } from "./deck"
 import produce from "immer"
 import logger from "~server/logger"
 
-const { log, error, logRoom: rlog, errorRoom: rerror } = logger("chess")
+const { log, logRoom: rlog } = logger("chess")
 
 /**
  * @typedef {Object} State
@@ -73,7 +73,9 @@ function getInitialState(socket) {
 		if (rooms.has(roomName)) {
 			const room = rooms.get(roomName)
 			if (room.sockets.includes(socket)) ack(room.state)
-			rlog(roomName, `Sent state of room to ${socket.id}`)
+			rlog(roomName, `Sent state of room to ${socket.id}`, {
+				level: "verbose"
+			})
 		}
 	}
 }
@@ -88,13 +90,15 @@ function joinRoom(socket) {
 		if (!rooms.has(roomName)) {
 			rooms.set(roomName, makeRoom(socket))
 			rlog(roomName, `Created room`)
-			rlog(roomName, `${socket.id} joined`)
+			rlog(roomName, `${socket.id} joined`, { level: "verbose" })
 		} else {
 			const room = rooms.get(roomName)
 			const { state, sockets } = room
 			sockets.push(socket)
-			rlog(roomName, `${socket.id} joined`)
-			rlog(roomName, `${room.sockets.length} player(s) in room`)
+			rlog(roomName, `${socket.id} joined`, { level: "verbose" })
+			rlog(roomName, `${room.sockets.length} player(s) in room`, {
+				level: "verbose"
+			})
 		}
 	}
 }
@@ -106,7 +110,7 @@ function joinRoom(socket) {
 function leaveRoom(socket) {
 	return roomName => {
 		socket.leave(roomName)
-		rlog(roomName, `${socket.id} left`)
+		rlog(roomName, `${socket.id} left`, { level: "verbose" })
 		if (rooms.has(roomName)) {
 			const room = rooms.get(roomName)
 			if (room.sockets.length == 1) {
@@ -114,7 +118,9 @@ function leaveRoom(socket) {
 				rlog(roomName, `Destroyed room`)
 			} else {
 				room.sockets = room.sockets.filter(s => s !== socket)
-				log(roomName, `${room.sockets.length} player(s) in room`)
+				log(roomName, `${room.sockets.length} player(s) in room`, {
+					level: "verbose"
+				})
 			}
 		}
 	}
@@ -128,15 +134,18 @@ function leaveRoom(socket) {
 function chooseSide(socket, nsp) {
 	return (roomName, i) => {
 		const room = rooms.get(roomName)
-		if (!room) return error(`Invalid room ${roomName}`)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
 		const key = "player" + i
 		if (state.player1 == socket.id || state.player2 == socket.id)
-			return rerror(roomName, `${socket.id} has already chosen a side`)
+			return rlog(roomName, `${socket.id} has already chosen a side`, {
+				level: "verbose"
+			})
 		if (state[key])
-			return rerror(
+			return rlog(
 				roomName,
-				`${socket.id} tried to become player ${i} but there already is one`
+				`${socket.id} tried to become player ${i} but there already is one`,
+				{ level: "verbose" }
 			)
 
 		const patches = []
@@ -151,8 +160,9 @@ function chooseSide(socket, nsp) {
 
 		nsp.to(roomName).emit("apply_patches", patches)
 		rooms.set(roomName, { state: next, sockets })
-		rlog(roomName, `${socket.id} is now player ${i}`)
-		if (next.state == "playing") rlog(roomName, `The game has started!`)
+		rlog(roomName, `${socket.id} is now player ${i}`, { level: "verbose" })
+		if (next.state == "playing")
+			rlog(roomName, `The game has started!`, { level: "verbose" })
 	}
 }
 
@@ -164,19 +174,23 @@ function chooseSide(socket, nsp) {
 function select(socket, nsp) {
 	return (roomName, i) => {
 		const room = rooms.get(roomName)
-		if (!room) return error(`Invalid room ${roomName}`)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
 		if (!isYourTurn(state, socket.id))
-			return rerror(roomName, `It is not the turn of ${socket.id}`)
+			return rlog(roomName, `It is not the turn of ${socket.id}`, {
+				level: "verbose"
+			})
 		if (i != -1 && !isYourPiece(state, socket.id, i))
-			return rerror(
+			return rlog(
 				roomName,
-				`Piece at ${i} doesn't belong to ${socket.id}`
+				`Piece at ${i} doesn't belong to ${socket.id}`,
+				{ level: "verbose" }
 			)
 		if (state.board[i] === null)
-			return rerror(
+			return rlog(
 				roomName,
-				`${socket.id} cannot select an empty cell at ${i}`
+				`${socket.id} cannot select an empty cell at ${i}`,
+				{ level: "verbose" }
 			)
 
 		const patches = []
@@ -199,10 +213,12 @@ function select(socket, nsp) {
 function move(socket, nsp) {
 	return (roomName, from, to) => {
 		const room = rooms.get(roomName)
-		if (!room) return error(`Invalid room ${roomName}`)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
 		if (!isYourTurn(state, socket.id))
-			return rerror(roomName, `It is not the turn of ${socket.id}`)
+			return rlog(roomName, `It is not the turn of ${socket.id}`, {
+				level: "verbose"
+			})
 
 		const patches = []
 		const next = produce(
@@ -217,9 +233,10 @@ function move(socket, nsp) {
 					draft.board[from] = null
 					draft.turn++
 				} else
-					rerror(
+					rlog(
 						roomName,
-						`${socket.id} attempted an invalid move from ${from} to ${to}`
+						`${socket.id} attempted an invalid move from ${from} to ${to}`,
+						{ level: "verbose" }
 					)
 			},
 			p => patches.push(...p)
@@ -299,11 +316,48 @@ const canMove = [
 	// white-knight
 	() => false,
 	// white-bishop
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		const dx = x2 - x1,
+			dy = y2 - y1,
+			sx = Math.sign(dx),
+			sy = Math.sign(dy)
+		if (Math.abs(dx) == Math.abs(dy)) {
+			let x = x1 + sx,
+				y = y1 + sy
+			while (x != x2 && y != y2) {
+				if (!isEmpty(board[y * 8 + x])) return false
+				x += sx
+				y += sy
+			}
+			return isEmpty(board[j]) || isBlack(board[j])
+		} else return false
+	},
 	// white-queen
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		const dx = x2 - x1,
+			dy = y2 - y1,
+			sx = Math.sign(dx),
+			sy = Math.sign(dy)
+		if (x1 == x2 || y1 == y2 || Math.abs(dx) == Math.abs(dy)) {
+			let x = x1 + sx,
+				y = y1 + sy
+			while (x != x2 && y != y2) {
+				if (!isEmpty(board[y * 8 + x])) return false
+				x += sx
+				y += sy
+			}
+			return isEmpty(board[j]) || isBlack(board[j])
+		} else return false
+	},
 	// white-king
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		if (Math.abs(x2 - x1) <= 1 && Math.abs(y2 - y1) <= 1)
+			return isEmpty(board[j]) || isBlack(board[j])
+		else return false
+	},
 	// black-pawn
 	function([x1, y1, i], [x2, y2, j], board) {
 		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 <= y1) return false
@@ -332,11 +386,48 @@ const canMove = [
 	// black-knight
 	() => false,
 	// black-bishop
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		const dx = x2 - x1,
+			dy = y2 - y1,
+			sx = Math.sign(dx),
+			sy = Math.sign(dy)
+		if (Math.abs(dx) == Math.abs(dy)) {
+			let x = x1 + sx,
+				y = y1 + sy
+			while (x != x2 && y != y2) {
+				if (!isEmpty(board[y * 8 + x])) return false
+				x += sx
+				y += sy
+			}
+			return isEmpty(board[j]) || isWhite(board[j])
+		} else return false
+	},
 	// black-queen
-	() => false,
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		const dx = x2 - x1,
+			dy = y2 - y1,
+			sx = Math.sign(dx),
+			sy = Math.sign(dy)
+		if (x1 == x2 || y1 == y2 || Math.abs(dx) == Math.abs(dy)) {
+			let x = x1 + sx,
+				y = y1 + sy
+			while (x != x2 && y != y2) {
+				if (!isEmpty(board[y * 8 + x])) return false
+				x += sx
+				y += sy
+			}
+			return isEmpty(board[j]) || isWhite(board[j])
+		} else return false
+	},
 	// black-king
-	() => false
+	function([x1, y1, i], [x2, y2, j], board) {
+		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 < 0 || i == j) return false
+		if (Math.abs(x2 - x1) <= 1 && Math.abs(y2 - y1) <= 1)
+			return isEmpty(board[j]) || isWhite(board[j])
+		else return false
+	}
 ]
 
 function makeBoard() {
