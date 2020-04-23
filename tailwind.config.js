@@ -719,7 +719,7 @@ module.exports = {
 	corePlugins: {},
 	plugins: [
 		plugin(({ addComponents, addUtilities }) => {
-			const imgUrl = "img/cards.gif"
+			const imgUrl = "/img/cards.gif"
 			const imgW = 1135,
 				imgH = 469,
 				cardW = imgW / 14,
@@ -780,7 +780,7 @@ module.exports = {
 			})
 		}),
 		plugin(({ addComponents, addUtilities }) => {
-			const imgUrl = "img/chess.png"
+			const imgUrl = "/img/chess.png"
 			const imgW = 600,
 				imgH = 200,
 				pieceW = imgW / 6,
