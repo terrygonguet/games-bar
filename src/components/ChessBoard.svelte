@@ -64,10 +64,37 @@
 	grid-template-columns: repeat(8, auto);
 	grid-template-rows: repeat(8, auto);
 }
+
+.caught {
+	display: grid;
+	grid-auto-rows: max-content;
+	grid-template-columns: repeat(3, calc(var(--chess-scale) * var(--chess-piece)));
+}
+
+.your-turn {
+	animation: glow 1s ease-out infinite alternate;
+}
+
+@keyframes glow {
+	from {
+		box-shadow: 0px 0px 10px 0px goldenrod;
+	}
+	to {
+		box-shadow: 0px 0px 20px 5px goldenrod;
+	}
+}
 </style>
 
 <section class="m-4 flex" style="--chess-scale:{scale}">
-	<div id="board">
+	<div class="caught p-4" style="--chess-scale:{scale / 2}">
+		<p class="col-span-3 border-b border-white text-center">Pieces captured</p>
+		{#each isWhite ? $state.p1caught : $state.p2caught as piece}
+			<div class="piece {pieces[piece]}" />
+		{:else}
+			<div class="w-piece h-piece" />
+		{/each}
+	</div>
+	<div id="board" class="border-4 border-black" class:your-turn={yourTurn}>
 		{#each flipedBoard as cell, i}
 			<div
 				class="w-piece h-piece {cellColor(i) ? "bg-yellow-900" : "bg-orange-400"}"
@@ -78,6 +105,14 @@
 						class:bg-purple-500={isSelected(i)}/>
 				{/if}
 			</div>
+		{/each}
+	</div>
+	<div class="caught p-4" style="--chess-scale:{scale / 2}">
+		<p class="col-span-3 border-b border-white text-center">Pices lost</p>
+		{#each isWhite ? $state.p2caught : $state.p1caught as piece}
+			<div class="piece {pieces[piece]}" />
+		{:else}
+			<div class="w-piece h-piece" />
 		{/each}
 	</div>
 </section>

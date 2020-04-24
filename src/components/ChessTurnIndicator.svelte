@@ -12,6 +12,6 @@
 	{/if}
 	Turn {turn}
 </h2>
-{#if yourTurn}
+{#if yourTurn && turn < 15}
 	<h3 class="text-xl">It is your turn</h3>
 {/if}

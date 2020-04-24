@@ -811,31 +811,35 @@ module.exports = {
 			addComponents({
 				".piece": {
 					backgroundImage: `url(${imgUrl})`,
-					width: `calc(var(--chess-scale) * ${pieceW}px)`,
-					height: `calc(var(--chess-scale) * ${pieceH}px)`,
+					width: `calc(var(--chess-scale) * var(--chess-piece))`,
+					height: `calc(var(--chess-scale) * var(--chess-piece))`,
 					backgroundSize: `calc(var(--chess-scale) * ${imgW}px)`
 				},
-				...pieces
+				...pieces,
+				":root": {
+					"--chess-scale": "1",
+					"--chess-piece": `${pieceW}px`
+				}
 			})
 
 			addUtilities({
 				".w-piece": {
-					width: `calc(var(--chess-scale) * ${pieceW}px)`
+					width: `calc(var(--chess-scale) * var(--chess-piece))`
 				},
 				".h-piece": {
-					height: `calc(var(--chess-scale) * ${pieceH}px)`
+					height: `calc(var(--chess-scale) * var(--chess-piece))`
 				},
 				".min-w-piece": {
-					minWidth: `calc(var(--chess-scale) * ${pieceW}px)`
+					minWidth: `calc(var(--chess-scale) * var(--chess-piece))`
 				},
 				".min-h-piece": {
-					minHeight: `calc(var(--chess-scale) * ${pieceH}px)`
+					minHeight: `calc(var(--chess-scale) * var(--chess-piece))`
 				},
 				".max-w-piece": {
-					maxWidth: `calc(var(--chess-scale) * ${pieceW}px)`
+					maxWidth: `calc(var(--chess-scale) * var(--chess-piece))`
 				},
 				".max-h-piece": {
-					maxHeight: `calc(var(--chess-scale) * ${pieceH}px)`
+					maxHeight: `calc(var(--chess-scale) * var(--chess-piece))`
 				}
 			})
 		})

@@ -44,5 +44,6 @@
 		<h2 class="text-center font-semibold text-5xl m-8">
 			You are {isWhite ? 'white' : 'black'}
 		</h2>
+		<p class="text-2xl text-center mb-4">Waiting for your opponent...</p>
 	{/if}
 </form>

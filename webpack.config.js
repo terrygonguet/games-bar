@@ -17,7 +17,10 @@ function templateDependency({ content, filename }) {
 	return {
 		code: content,
 		dependencies: filename.endsWith("_layout.svelte")
-			? [path.join(__dirname, "src/template.html")]
+			? [
+					path.join(__dirname, "src/template.html"),
+					path.join(__dirname, "tailwind.config.js")
+			  ]
 			: []
 	}
 }

@@ -229,8 +229,23 @@ function move(socket, nsp) {
 				const b = [to % 8, Math.floor(to / 8), to]
 				const piece = state.board[from]
 				if (canMove[piece](a, b, state.board)) {
-					draft.board[to] = piece
 					draft.board[from] = null
+					const eaten = draft.board[to]
+					if (isBlack(eaten)) draft.p1caught.push(eaten)
+					else if (isWhite(eaten)) draft.p2caught.push(eaten)
+					draft.board[to] = piece
+					// promotion
+					if (piece === 0 && b[1] == 0) {
+						draft.board[to] = 4
+						rlog(roomName, "White promoted a pawn to queen!", {
+							level: "verbose"
+						})
+					} else if (piece === 6 && b[1] == 7) {
+						draft.board[to] = 10
+						rlog(roomName, "Black promoted a pawn to queen!", {
+							level: "verbose"
+						})
+					}
 					draft.turn++
 				} else
 					rlog(

@@ -9,10 +9,6 @@ body {
 	min-height: 100vh;
 }
 
-:root {
-	--chess-scale: 1;
-}
-
 .flex-center {
 	display: flex;
 	justify-content: center;
