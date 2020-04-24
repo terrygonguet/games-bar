@@ -7,6 +7,7 @@
 	export let room
 
 	const pieces = [
+		"nothing",
 		"white-pawn", "white-rook", "white-knight", "white-bishop", "white-queen", "white-king",
 		"black-pawn", "black-rook", "black-knight", "black-bishop", "black-queen", "black-king"
 	]
@@ -86,6 +87,7 @@
 	height: calc(100% + 8px);
 	top: -4px;
 	left: -4px;
+	pointer-events: none;
 }
 
 @keyframes glow {
@@ -107,7 +109,13 @@
 			<div class="w-piece h-piece" />
 		{/each}
 	</div>
-	<div id="board" class="border-4 border-black" class:your-turn={yourTurn}>
+	<div
+		id="board"
+		class="border-4 border-black"
+		class:your-turn={yourTurn}
+		class:border-red-600={$state.check && yourTurn}
+		class:border-blue-600={$state.check && !yourTurn}
+	>
 		{#each flipedBoard as cell, i}
 			<div
 				class="w-piece h-piece {cellColor(i) ? "bg-yellow-900" : "bg-orange-400"}"
@@ -129,4 +137,4 @@
 		{/each}
 	</div>
 </section>
-<ChessTurnIndicator {isPlayer} {isWhite} turn={$state.turn} />
+<ChessTurnIndicator {state} socketId={socket.id} />

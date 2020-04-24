@@ -15,6 +15,8 @@ const { log, logRoom: rlog } = logger("chess")
  * @property {number} selected
  * @property {number[]} p1caught
  * @property {number[]} p2caught
+ * @property {{ from: number, to: number }} lastMove
+ * @property {boolean} check
  */
 
 /**
@@ -231,21 +233,32 @@ function move(socket, nsp) {
 				if (canMove[piece](a, b, state.board)) {
 					draft.board[from] = null
 					const eaten = draft.board[to]
+					draft.board[to] = piece
+
+					if (isCurrentInCheck(draft.board, draft.turn)) {
+						// revert move
+						draft.board[from] = piece
+						draft.board[to] = eaten
+						return rlog(roomName, "Can't end your turn in check", {
+							level: "verbose"
+						})
+					}
+
 					if (isBlack(eaten)) draft.p1caught.push(eaten)
 					else if (isWhite(eaten)) draft.p2caught.push(eaten)
-					draft.board[to] = piece
 					// promotion
-					if (piece === 0 && b[1] == 0) {
-						draft.board[to] = 4
+					if (piece === 1 && b[1] == 0) {
+						draft.board[to] = 5
 						rlog(roomName, "White promoted a pawn to queen!", {
 							level: "verbose"
 						})
-					} else if (piece === 6 && b[1] == 7) {
-						draft.board[to] = 10
+					} else if (piece === 7 && b[1] == 7) {
+						draft.board[to] = 11
 						rlog(roomName, "Black promoted a pawn to queen!", {
 							level: "verbose"
 						})
 					}
+					draft.check = isOpponentInCheck(draft.board, draft.turn)
 					draft.turn++
 				} else
 					rlog(
@@ -276,26 +289,13 @@ function makeRoom(socket) {
 			player2: "",
 			selected: -1,
 			state: "choosing",
-			turn: 1
+			turn: 1,
+			lastMove: { from: -1, to: -1 },
+			check: false
 		},
 		sockets: [socket]
 	}
 }
-
-const pieces = [
-	"white-pawn",
-	"white-rook",
-	"white-knight",
-	"white-bishop",
-	"white-queen",
-	"white-king",
-	"black-pawn",
-	"black-rook",
-	"black-knight",
-	"black-bishop",
-	"black-queen",
-	"black-king"
-]
 
 /** @typedef {[number,number,number]} Pos */
 
@@ -303,6 +303,8 @@ const pieces = [
 
 /** @type {MoveValidator[]} */
 const canMove = [
+	// empty spot
+	() => false,
 	// white pawn
 	function([x1, y1, i], [x2, y2, j], board) {
 		if (x2 > 7 || x2 < 0 || y2 > 7 || y2 >= y1) return false
@@ -473,22 +475,22 @@ const canMove = [
 
 function makeBoard() {
 	return [
-		7,
 		8,
 		9,
 		10,
 		11,
+		12,
+		10,
 		9,
 		8,
 		7,
-		6,
-		6,
-		6,
-		6,
-		6,
-		6,
-		6,
-		6,
+		7,
+		7,
+		7,
+		7,
+		7,
+		7,
+		7,
 		null,
 		null,
 		null,
@@ -521,22 +523,22 @@ function makeBoard() {
 		null,
 		null,
 		null,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
 		1,
 		2,
 		3,
 		4,
 		5,
+		6,
+		4,
 		3,
-		2,
-		1
+		2
 	]
 }
 
@@ -564,19 +566,177 @@ function isYourPiece(state, id, i) {
  * @param {number} piece
  */
 function isWhite(piece) {
-	return piece !== null && piece <= 5
+	return piece !== null && piece <= 6
 }
 
 /**
  * @param {number} piece
  */
 function isBlack(piece) {
-	return piece !== null && piece > 5
+	return piece !== null && piece > 6
 }
 
 /**
  * @param {number} piece
  */
 function isEmpty(piece) {
-	return piece === null
+	return !piece
 }
+
+/**
+ * @param {number[]} board
+ */
+function isBlackInCheck(board) {
+	const i = board.indexOf(12)
+	const j = board.indexOf(6)
+	if (i == -1 || j == -1) return false
+	const x = i % 8,
+		y = Math.floor(i / 8)
+	// king
+	if (
+		j == i + 7 ||
+		j == i + 8 ||
+		j == i + 9 ||
+		j == i - 7 ||
+		j == i - 8 ||
+		j == i - 9 ||
+		j == i + 1 ||
+		j == i - 1
+	)
+		return true
+	// pawns
+	if (board[i + 7] == 1 || board[i + 9] == 1) return true
+	// knights
+	if (
+		board[(y + 1) * 8 + x + 2] == 3 ||
+		board[(y + 1) * 8 + x - 2] == 3 ||
+		board[(y - 1) * 8 + x + 2] == 3 ||
+		board[(y - 1) * 8 + x - 2] == 3 ||
+		board[(y + 2) * 8 + x + 1] == 3 ||
+		board[(y + 2) * 8 + x - 1] == 3 ||
+		board[(y - 2) * 8 + x + 1] == 3 ||
+		board[(y - 2) * 8 + x - 1] == 3
+	)
+		return true
+	// other
+	const straightThreats = [2, 5]
+	const diagThreats = [4, 5]
+	const closest = Array(8).fill(null)
+	for (let k = 1; k < 8; k++) {
+		const n = board[(y - k) * 8 + x]
+		if (!closest[0] && n !== null) closest[0] = n
+		const ne = board[(y - k) * 8 + x + k]
+		if (!closest[1] && ne !== null) closest[1] = ne
+		const e = board[y * 8 + x + k]
+		if (!closest[2] && e !== null) closest[2] = e
+		const se = board[(y + k) * 8 + x + k]
+		if (!closest[3] && se !== null) closest[3] = se
+		const s = board[(y + k) * 8 + x]
+		if (!closest[4] && s !== null) closest[4] = s
+		const sw = board[(y + k) * 8 + x - k]
+		if (!closest[5] && sw !== null) closest[5] = sw
+		const w = board[y * 8 + x - k]
+		if (!closest[6] && w !== null) closest[6] = w
+		const nw = board[(y - k) * 8 + x - k]
+		if (!closest[7] && nw !== null) closest[7] = nw
+		if (closest.every(Boolean)) break
+	}
+	return closest.some((c, i) =>
+		(i % 2 ? diagThreats : straightThreats).includes(c)
+	)
+}
+
+/**
+ * @param {number[]} board
+ */
+function isWhiteInCheck(board) {
+	const i = board.indexOf(6)
+	const j = board.indexOf(12)
+	if (i == -1 || j == -1) return false
+	const x = i % 8,
+		y = Math.floor(i / 8)
+	// king
+	if (
+		j == i + 7 ||
+		j == i + 8 ||
+		j == i + 9 ||
+		j == i - 7 ||
+		j == i - 8 ||
+		j == i - 9 ||
+		j == i + 1 ||
+		j == i - 1
+	)
+		return true
+	// pawns
+	if (board[i + 7] == 7 || board[i + 9] == 7) return true
+	// knights
+	if (
+		board[(y + 1) * 8 + x + 2] == 9 ||
+		board[(y + 1) * 8 + x - 2] == 9 ||
+		board[(y - 1) * 8 + x + 2] == 9 ||
+		board[(y - 1) * 8 + x - 2] == 9 ||
+		board[(y + 2) * 8 + x + 1] == 9 ||
+		board[(y + 2) * 8 + x - 1] == 9 ||
+		board[(y - 2) * 8 + x + 1] == 9 ||
+		board[(y - 2) * 8 + x - 1] == 9
+	)
+		return true
+	// other
+	const straightThreats = [8, 11]
+	const diagThreats = [10, 11]
+	const closest = Array(8).fill(null)
+	for (let k = 1; k < 8; k++) {
+		const n = board[(y - k) * 8 + x]
+		if (!closest[0] && n !== null) closest[0] = n
+		const ne = board[(y - k) * 8 + x + k]
+		if (!closest[1] && ne !== null) closest[1] = ne
+		const e = board[y * 8 + x + k]
+		if (!closest[2] && e !== null) closest[2] = e
+		const se = board[(y + k) * 8 + x + k]
+		if (!closest[3] && se !== null) closest[3] = se
+		const s = board[(y + k) * 8 + x]
+		if (!closest[4] && s !== null) closest[4] = s
+		const sw = board[(y + k) * 8 + x - k]
+		if (!closest[5] && sw !== null) closest[5] = sw
+		const w = board[y * 8 + x - k]
+		if (!closest[6] && w !== null) closest[6] = w
+		const nw = board[(y - k) * 8 + x - k]
+		if (!closest[7] && nw !== null) closest[7] = nw
+		if (closest.every(Boolean)) break
+	}
+	return closest.some((c, i) =>
+		(i % 2 ? diagThreats : straightThreats).includes(c)
+	)
+}
+
+/**
+ * @param {number[]} board
+ * @param {number} turn
+ */
+function isCurrentInCheck(board, turn) {
+	return turn % 2 ? isWhiteInCheck(board) : isBlackInCheck(board)
+}
+
+/**
+ * @param {number[]} board
+ * @param {number} turn
+ */
+function isOpponentInCheck(board, turn) {
+	return turn % 2 ? isBlackInCheck(board) : isWhiteInCheck(board)
+}
+
+const pieces = [
+	"nothing",
+	"white-pawn",
+	"white-rook",
+	"white-knight",
+	"white-bishop",
+	"white-queen",
+	"white-king",
+	"black-pawn",
+	"black-rook",
+	"black-knight",
+	"black-bishop",
+	"black-queen",
+	"black-king"
+]
