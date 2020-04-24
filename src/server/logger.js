@@ -11,14 +11,16 @@ export default function logger(game, levels) {
 		levels = ["error", "warn", "info"]
 		if (process.dev) levels.push("verbose")
 	}
+	const enableColor = process.env.COLOR !== "false"
+	const id = a => a
 	const l = levels.reduce((acc, cur) => Math.max(acc, cur.length), 0)
 	const ctx = new chalk.Instance({ level: 1 })
 	/** @type {Object<string,chalk.Chalk>} */
 	const colors = {
-		error: ctx.red,
-		warn: ctx.yellow,
-		info: ctx.white,
-		verbose: ctx.gray
+		error: enableColor ? ctx.red : id,
+		warn: enableColor ? ctx.yellow : id,
+		info: enableColor ? ctx.white : id,
+		verbose: enableColor ? ctx.gray : id
 	}
 
 	return {
