@@ -72,15 +72,28 @@
 }
 
 .your-turn {
+	box-shadow: 0px 0px 10px 0px goldenrod;
+	position: relative;
+}
+
+.your-turn::after {
+	box-shadow: 0px 0px 20px 5px goldenrod;
+	opacity: 0;
 	animation: glow 1s ease-out infinite alternate;
+	position: absolute;
+	content: "";
+	width: calc(100% + 8px);
+	height: calc(100% + 8px);
+	top: -4px;
+	left: -4px;
 }
 
 @keyframes glow {
 	from {
-		box-shadow: 0px 0px 10px 0px goldenrod;
+		opacity: 0;
 	}
 	to {
-		box-shadow: 0px 0px 20px 5px goldenrod;
+		opacity: 1;
 	}
 }
 </style>
