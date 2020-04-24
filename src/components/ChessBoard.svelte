@@ -12,7 +12,7 @@
 		"black-pawn", "black-rook", "black-knight", "black-bishop", "black-queen", "black-king"
 	]
 	const socket = getSocket("chess")
-	let scale = 1
+	let scale = 1, showLastMove = true
 
 	if (process.browser) {
 		if (innerHeight < 1000) scale = innerHeight / 1100
@@ -22,6 +22,10 @@
 	$: isWhite = !isPlayer || $state.player1 == socket.id
 	$: flipedBoard = isWhite ? $state.board : flipBoard($state.board)
 	$: yourTurn = isPlayer && ($state.turn + (isWhite ? 0 : 1)) % 2
+	$: isLastMove = i => {
+		const j = realPosition(i)
+		return j == $state.lastMove.from || j == $state.lastMove.to
+	}
 
 	function cellColor(i) {
 		const j = isWhite ? 0 : 1
@@ -57,6 +61,14 @@
 	function flipPosition(i) {
 		return -(Math.floor(i / 8) - 7) * 8 + (i % 8)
 	}
+
+	function isLastFrom(i) {
+		return 
+	}
+
+	function isLastTo(i) {
+		return realPosition(i) == $state.lastMove.to
+	}
 </script>
 
 <style>
@@ -90,6 +102,10 @@
 	pointer-events: none;
 }
 
+.bg-lastmove {
+	background-color: gold !important;
+}
+
 @keyframes glow {
 	from {
 		opacity: 0;
@@ -101,6 +117,10 @@
 </style>
 
 <section class="m-4 flex" style="--chess-scale:{scale}">
+	<label class="absolute top-0 right-0 m-4">
+		Show last move
+		<input type="checkbox" bind:checked={showLastMove} />
+	</label>
 	<div class="caught p-4" style="--chess-scale:{scale / 2}">
 		<p class="col-span-3 border-b border-white text-center">Pieces captured</p>
 		{#each isWhite ? $state.p1caught : $state.p2caught as piece}
@@ -116,14 +136,17 @@
 		class:border-red-600={$state.check && yourTurn}
 		class:border-blue-600={$state.check && !yourTurn}
 	>
-		{#each flipedBoard as cell, i}
+		{#each flipedBoard as cell, i (i)}
 			<div
 				class="w-piece h-piece {cellColor(i) ? "bg-yellow-900" : "bg-orange-400"}"
-				on:click={onClick(i)}>
+				class:bg-lastmove={showLastMove && yourTurn && isLastMove(i)}
+				on:click={onClick(i)}
+			>
 				{#if cell !== null}
 					<div
 						class="piece {pieces[cell]} cursor-pointer"
-						class:bg-purple-500={isSelected(i)}/>
+						class:bg-purple-500={isSelected(i)}
+					/>
 				{/if}
 			</div>
 		{/each}

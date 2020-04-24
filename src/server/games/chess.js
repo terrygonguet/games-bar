@@ -244,6 +244,7 @@ function move(socket, nsp) {
 						})
 					}
 
+					draft.lastMove = { from, to }
 					if (isBlack(eaten)) draft.p1caught.push(eaten)
 					else if (isWhite(eaten)) draft.p2caught.push(eaten)
 					// promotion
