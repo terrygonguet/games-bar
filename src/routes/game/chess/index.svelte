@@ -24,6 +24,9 @@
 		<p class="my-4">
 			It's <a href="https://en.wikipedia.org/wiki/Chess" target="_blank" class="a">chess</a>. You know what chess is.
 		</p>
+		<p class="my-4">
+			This version does <strong>not</strong> include castling or <em>en passant</em>, sorry.
+		</p>
 	</section>
 	<form onsubmit="return false">
 		<label>

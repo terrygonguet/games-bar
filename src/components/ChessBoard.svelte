@@ -152,7 +152,7 @@
 		{/each}
 	</div>
 	<div class="caught p-4" style="--chess-scale:{scale / 2}">
-		<p class="col-span-3 border-b border-white text-center">Pices lost</p>
+		<p class="col-span-3 border-b border-white text-center">Pieces lost</p>
 		{#each isWhite ? $state.p2caught : $state.p1caught as piece}
 			<div class="piece {pieces[piece]}" />
 		{:else}
