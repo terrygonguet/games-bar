@@ -7,5 +7,8 @@ import games from "~server/games"
  * @param {ServerResponse} res
  */
 export function get(req, res) {
-	send(res, 200, { error: false, data: Object.keys(games) })
+	send(res, 200, {
+		error: false,
+		data: games.map(g => ({ ...g, handler: undefined }))
+	})
 }
