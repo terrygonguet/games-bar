@@ -1,6 +1,9 @@
 import io from "socket.io"
 import { Deck, suits } from "./deck"
 import produce from "immer"
+import logger from "~server/logger"
+
+const { log, logRoom: rlog } = logger("solitaire")
 
 /** @typedef {import("./deck").Card} Card */
 
@@ -28,7 +31,7 @@ import produce from "immer"
 export default function(nsp) {
 	nsp.on("connect", socket => {
 		const n = Object.keys(nsp.sockets).length
-		console.log(`${socket.id} joined solitaire - ${n} connected`)
+		log(`${socket.id} joined solitaire - ${n} connected`)
 
 		socket.on("disconnect", disconnect(socket, nsp))
 
@@ -56,7 +59,7 @@ const rooms = new Map()
 function disconnect(socket, nsp) {
 	return () => {
 		const n = Object.keys(nsp.sockets).length
-		console.log(`${socket.id} left solitaire - ${n} connected`)
+		log(`${socket.id} left solitaire - ${n} connected`)
 		for (const [roomName, { state, sockets }] of rooms.entries()) {
 			if (sockets.includes(socket)) leaveRoom(socket)(roomName)
 		}
@@ -70,10 +73,13 @@ function disconnect(socket, nsp) {
 function moveHand(socket) {
 	return (roomName, newpos) => {
 		const room = rooms.get(roomName)
-		if (!room) return console.error(`Invalid room ${roomName}`)
+		if (!room)
+			return rlog(roomName, `Invalid room ${roomName}`, {
+				level: "error"
+			})
 		const { state, sockets } = room
 		if (state.player != socket.id)
-			return console.error("Spectators can't play")
+			return rlog(roomName, "Spectators can't play", { level: "verbose" })
 		const patches = []
 		const next = produce(
 			state,
@@ -93,19 +99,22 @@ function moveHand(socket) {
 function placeAce(socket, nsp) {
 	return (roomName, i) => {
 		const room = rooms.get(roomName)
-		if (!room) return console.error(`Invalid room ${roomName}`)
+		if (!room)
+			rlog(roomName, `Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
 		if (state.player != socket.id)
-			return console.error("Spectators can't play")
+			return rlog(roomName, "Spectators can't play", { level: "verbose" })
 		const correct = {
 			rank: 1,
 			suit: suits[i]
 		}
 		if (!Deck.equals(state.hand, correct))
-			return console.error(
-				`Invalid swap in room ${roomName}. Expected a ${Deck.stringifyCard(
+			return rlog(
+				roomName,
+				`Invalid swap. Expected a ${Deck.stringifyCard(
 					correct
-				)} but got a ${Deck.stringifyCard(state.hand)} instead`
+				)} but got a ${Deck.stringifyCard(state.hand)} instead`,
+				{ level: "verbose" }
 			)
 		const patches = []
 		const next = produce(
@@ -135,19 +144,22 @@ function placeAce(socket, nsp) {
 function swapCard(socket, nsp) {
 	return (roomName, i) => {
 		const room = rooms.get(roomName)
-		if (!room) return console.error(`Invalid room ${roomName}`)
+		if (!room)
+			rlog(roomName, `Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
 		if (state.player != socket.id)
-			return console.error("Spectators can't play")
+			return rlog(roomName, "Spectators can't play", { level: "verbose" })
 		const correct = {
 			suit: suits[Math.floor(i / 7)],
 			rank: (i % 7) + 7
 		}
 		if (!Deck.equals(state.hand, correct))
-			return console.error(
-				`Invalid swap in room ${roomName}. Expected a ${Deck.stringifyCard(
+			return rlog(
+				roomName,
+				`Invalid swap. Expected a ${Deck.stringifyCard(
 					correct
-				)} but got a ${Deck.stringifyCard(state.hand)} instead`
+				)} but got a ${Deck.stringifyCard(state.hand)} instead`,
+				{ level: "verbose" }
 			)
 		const patches = []
 		const next = produce(
@@ -174,7 +186,9 @@ function getInitialState(socket) {
 		if (rooms.has(roomName)) {
 			const room = rooms.get(roomName)
 			if (room.sockets.includes(socket)) ack(room.state)
-			console.log(`Sent state of room ${roomName} to ${socket.id}`)
+			rlog(roomName, `Sent state of room to ${socket.id}`, {
+				level: "verbose"
+			})
 		}
 	}
 }
@@ -186,10 +200,10 @@ function getInitialState(socket) {
 function joinRoom(socket) {
 	return roomName => {
 		socket.join(roomName)
-		console.log(`${socket.id} joined room ${roomName}`)
 		if (!rooms.has(roomName)) {
 			rooms.set(roomName, makeRoom(socket))
-			console.log(`Created room ${roomName}`)
+			rlog(roomName, `Created room`)
+			rlog(roomName, `${socket.id} joined`, { level: "verbose" })
 		} else {
 			const room = rooms.get(roomName)
 			const { state, sockets } = room
@@ -204,7 +218,10 @@ function joinRoom(socket) {
 			)
 			socket.to(roomName).emit("apply_patches", patches)
 			rooms.set(roomName, { state: next, sockets })
-			console.log(`${room.sockets.length} player(s) in room ${roomName}`)
+			rlog(roomName, `${socket.id} joined`, { level: "verbose" })
+			rlog(roomName, `${room.sockets.length} player(s) in room`, {
+				level: "verbose"
+			})
 		}
 	}
 }
@@ -216,15 +233,13 @@ function joinRoom(socket) {
 function leaveRoom(socket) {
 	return roomName => {
 		socket.leave(roomName)
-		console.log(`${socket.id} left room ${roomName}`)
+		rlog(roomName, `${socket.id} left`, { level: "verbose" })
 		if (rooms.has(roomName)) {
 			const room = rooms.get(roomName)
 			if (room.sockets.length == 1) {
 				rooms.delete(roomName)
-				console.log(`Destroyed room ${roomName}`)
+				rlog(roomName, `Destroyed room`)
 			} else {
-				const room = rooms.get(roomName)
-				const { state, sockets } = room
 				const patches = []
 				const next = produce(
 					state,
@@ -236,9 +251,9 @@ function leaveRoom(socket) {
 				)
 				socket.to(roomName).emit("apply_patches", patches)
 				rooms.set(roomName, { state: next, sockets })
-				console.log(
-					`${room.sockets.length} player(s) in room ${roomName}`
-				)
+				rlog(roomName, `${room.sockets.length} player(s) in room`, {
+					level: "verbose"
+				})
 			}
 		}
 	}
