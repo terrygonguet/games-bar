@@ -53,6 +53,10 @@ export default function(nsp) {
 		socket.on("get_initial_state", getInitialState(socket, nsp))
 
 		socket.on("choose_name", chooseName(socket, nsp))
+
+		socket.on("set_categories", setCategories(socket, nsp))
+
+		socket.on("start_round", startRound(socket, nsp))
 	})
 }
 
@@ -75,9 +79,10 @@ function disconnect(socket, nsp) {
 
 /**
  * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
  * @returns {(roomName: string, ack: (state: State) => void) => void}
  */
-function getInitialState(socket) {
+function getInitialState(socket, nsp) {
 	return (roomName, ack) => {
 		if (rooms.has(roomName)) {
 			const room = rooms.get(roomName)
@@ -91,9 +96,10 @@ function getInitialState(socket) {
 
 /**
  * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
  * @returns {(roomName: string) => void}
  */
-function joinRoom(socket) {
+function joinRoom(socket, nsp) {
 	return roomName => {
 		socket.join(roomName)
 		if (!rooms.has(roomName)) {
@@ -148,7 +154,7 @@ function leaveRoom(socket, nsp) {
 						}
 						delete draft.players[socket.id]
 					},
-					p => nsp.emit("apply_patches", p)
+					p => nsp.to(roomName).emit("apply_patches", p)
 				)
 			}
 		}
@@ -182,8 +188,12 @@ function chooseName(socket, nsp) {
 				if (socket.id in draft.players)
 					draft.players[socket.id].name = name
 				else draft.players[socket.id] = makePlayer(name)
+				if (draft.state != "preparing") {
+					const letter = draft.letters[draft.letters.length - 1]
+					draft.players[socket.id].rounds.push(makeRound(letter))
+				}
 			},
-			p => nsp.emit("apply_patches", p)
+			p => nsp.to(roomName).emit("apply_patches", p)
 		)
 
 		rlog(roomName, `Given name ${name} to ${socket.id}`, {
@@ -194,16 +204,108 @@ function chooseName(socket, nsp) {
 
 /**
  * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string, categories: string[]) => void}
+ */
+function setCategories(socket, nsp) {
+	return (roomName, categories) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.king !== socket.id)
+			return rlog(roomName, "Only the king can change the categories", {
+				level: "verbose"
+			})
+		if (
+			!Array.isArray(categories) ||
+			!categories.every(c => typeof c == "string")
+		)
+			return rlog(
+				roomName,
+				`Invalid data supplied: ${JSON.stringify(categories)}`,
+				{ level: "error" }
+			)
+
+		room.state = produce(
+			state,
+			draft => void (draft.categories = categories),
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+
+		rlog(roomName, `Set the categories to [${categories}]`, {
+			level: "verbose"
+		})
+	}
+}
+
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string) => void}
+ */
+function startRound(socket, nsp) {
+	return (roomName, categories) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.king !== socket.id)
+			return rlog(roomName, "Only the king can start a round", {
+				level: "verbose"
+			})
+
+		room.state = produce(
+			state,
+			draft => {
+				draft.state = "thinking"
+				draft.round++
+				let unpicked = letters.filter(l => !draft.letters.includes(l))
+				if (unpicked.length == 0) {
+					draft.letters = []
+					unpicked = letters
+				}
+				const picked =
+					unpicked[Math.floor(Math.random() * unpicked.length)]
+				draft.letters.push(picked)
+				Object.values(draft.players).forEach(p =>
+					p.rounds.push(makeRound(picked))
+				)
+				rlog(roomName, `Started a round with the letter ${picked}`, {
+					level: "verbose"
+				})
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+	}
+}
+
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+
+/**
+ * @param {SocketIO.Socket} socket
  * @returns {Room}
  */
 function makeRoom(socket) {
 	return {
 		state: {
-			round: 1,
-			time: 0,
+			round: 0,
 			state: "preparing",
 			players: {},
-			categories: [],
+			categories: [
+				"Pays",
+				"Prénoms",
+				"Animaux",
+				"Métiers",
+				"Villes",
+				"Séries / Films",
+				"Choses / Objets",
+				"Fruits et/ou légumes",
+				"Marques",
+				"Outils",
+				"Capitales",
+				"Instruments de musique",
+				"Plats",
+				"Personnages historiques"
+			],
 			letters: [],
 			king: socket.id
 		},
@@ -220,5 +322,17 @@ function makePlayer(name) {
 		name,
 		points: 0,
 		rounds: []
+	}
+}
+
+/**
+ * @param {string} letter
+ * @returns {Round}
+ */
+function makeRound(letter) {
+	return {
+		letter,
+		uniques: [],
+		words: []
 	}
 }

@@ -36,6 +36,22 @@ main {
 	@apply text-gray-500 bg-blue-600 cursor-default;
 }
 
+.btn-err {
+	@apply bg-red-500;
+}
+
+.btn-err:hover {
+	@apply bg-red-400;
+}
+
+.btn-err:active {
+	@apply bg-red-600;
+}
+
+.btn-err:disabled {
+	@apply bg-red-600;
+}
+
 .inpt {
 	@apply border px-4 py-2 rounded;
 }

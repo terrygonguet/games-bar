@@ -11,6 +11,7 @@
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
 	import { makeStateFromSocket } from "~stores"
+	import PetitBac from "~components/PetitBac";
 
 	export let room
 
@@ -19,13 +20,23 @@
 	const socket = getSocket("petitbac")
 	let state = writable(null) // temp value
 
+	$: hasName = $state && socket.id in $state.players
+
 	function keyup(e) {
-		if (e.key == "Enter") socket.emit("choose_name", room, name)
+		if (e.key == "Enter") chooseName()
+	}
+
+	function chooseName () {
+		socket.emit("choose_name", room, name)
 	}
 
 	onMount(() => {
 		socket.emit("join", room)
 		state = makeStateFromSocket(socket, room)
+		if (process.dev) {
+			name = Math.random().toString(36).slice(2)
+			chooseName()
+		}
 		return () => socket.emit("leave", room)
 	})
 </script>
@@ -41,10 +52,17 @@
 	class="overflow-x-hidden flex flex-col items-center"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
-	<h1 class="text-4xl font-semibold text-center my-8">Petit Bac - {room}</h1>
+	<h1 class="text-4xl font-semibold text-center mt-4 md:my-8">Petit Bac - {room}</h1>
 	{#if $state}
-		<input type="text" class="inpt" bind:value={name} on:keyup={keyup}>
-		<pre>{JSON.stringify($state,null,2)}</pre>
+		{#if hasName}
+			<PetitBac {state} {room} />
+		{:else}
+			<label>
+				Choisis un nom
+				<input type="text" class="inpt" placeholder="Gertrude" bind:value={name} on:keyup={keyup}>
+				<button class="btn" on:click={chooseName}>GO</button>
+			</label>
+		{/if}
 	{:else}
 		<p>Loading...</p>
 	{/if}
