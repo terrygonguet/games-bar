@@ -61,7 +61,7 @@ export default function(nsp) {
 
 		socket.on("finish_round", finishRound(socket, nsp))
 
-		socket.on("set_word", setWord(socket, nsp))
+		socket.on("set_words", setWords(socket, nsp))
 
 		socket.on("refuse_word", refuseWord(socket, nsp))
 
@@ -338,6 +338,14 @@ function finishRound(socket, nsp) {
 		const room = rooms.get(roomName)
 		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state } = room
+		if (
+			!Array.isArray(words) ||
+			words.length != state.categories.length ||
+			!words.every(w => typeof w == "string")
+		)
+			return rlog(roomName, "Invalid data submitted", {
+				level: "verbose"
+			})
 		if (!words.every(Boolean) && words.length == state.categories.length)
 			return rlog(
 				roomName,
@@ -375,15 +383,23 @@ function finishRound(socket, nsp) {
 /**
  * @param {SocketIO.Socket} socket
  * @param {SocketIO.Namespace} nsp
- * @returns {(roomName: string, i: number, word: string) => void}
+ * @returns {(roomName: string, words: string[]) => void}
  */
-function setWord(socket, nsp) {
-	return (roomName, i, word) => {
+function setWords(socket, nsp) {
+	return (roomName, words) => {
 		const room = rooms.get(roomName)
 		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state } = room
 		if (state.state !== "thinking")
-			return rlog(roomName, "Cannot submit a word outside rounds", {
+			return rlog(roomName, "Cannot submit words outside rounds", {
+				level: "verbose"
+			})
+		if (
+			!Array.isArray(words) ||
+			words.length != state.categories.length ||
+			!words.every(w => typeof w == "string")
+		)
+			return rlog(roomName, "Invalid data submitted", {
 				level: "verbose"
 			})
 
@@ -392,7 +408,10 @@ function setWord(socket, nsp) {
 			draft => {
 				const round = last(draft.rounds)
 				if (!(socket.id in round.words)) round.words[socket.id] = []
-				round.words[socket.id][i] = word ? word.toString() : ""
+				const curWords = round.words[socket.id]
+				for (let i = 0; i < words.length; i++) {
+					if (words[i] != curWords[i]) curWords[i] = words[i]
+				}
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
 		)

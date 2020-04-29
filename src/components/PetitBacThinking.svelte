@@ -6,18 +6,16 @@
 	export let room
 
 	const socket = getSocket("petitbac")
-	const setWord = debounce(i => socket.emit("set_word", room, i, words[i]), 1500)
+	const setWords = debounce(() => socket.emit("set_words", room, words), 1500)
 	let table,
-		words = Array($state.categories.length).fill()
+		words = Array($state.categories.length).fill("")
 
 	$: letter = last($state.rounds).letter
 	$: finished = words.every(Boolean)
 
-	function onKeyup(i) {
-		return function (e) {
-			if (e.key == "Enter" && finished) finish()
-			else setWord(i)
-		}
+	function onKeydown(e) {
+		if (e.key == "Enter" && finished) finish()
+		else setWords()
 	}
 
 	function finish() {
@@ -29,11 +27,17 @@
 		firstInput.focus()
 		if (process.dev) {
 			words = words.map(() => Math.floor(Math.random() * 3) + 1 + "")
-			words.forEach((w,i) => socket.emit("set_word", room, i, w))
+			socket.emit("set_words", room, words)
 			setTimeout(finish, 5000)
 		}
 	})
 </script>
+
+<style>
+tr, th, td, input {
+	transition: background-color 0.3s ease-out;
+}
+</style>
 
 <p class="text-base text-gray-700 mb-4 text-center hidden md:block">
 	(Les touches <code class="rounded border bg-gray-200 px-1">Tab</code>
@@ -56,7 +60,7 @@
 						type="text"
 						class="focus:bg-blue-100"
 						bind:value={words[i]}
-						on:keyup={onKeyup(i)}
+						on:keydown={onKeydown}
 					>
 				</td>
 			</tr>
