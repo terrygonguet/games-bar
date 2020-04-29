@@ -11,14 +11,14 @@ const { log, logRoom: rlog } = logger("petitbac")
  * @property {Object<string,Player>} players
  * @property {string[]} categories
  * @property {string} king
- * @property {"preparing"|"thinking"|"scoring"} state
+ * @property {"preparing"|"thinking"|"scoring"|"scoreboard"} state
  * @property {Round[]} rounds
  * @property {boolean} everybodyCanRefuse
  */
 
 /**
  * @typedef {Object} Player
- * @property {number} points
+ * @property {number} score
  * @property {string} name
  */
 
@@ -64,6 +64,8 @@ export default function(nsp) {
 		socket.on("set_word", setWord(socket, nsp))
 
 		socket.on("refuse_word", refuseWord(socket, nsp))
+
+		socket.on("compute_score", computeScore(socket, nsp))
 	})
 }
 
@@ -439,6 +441,64 @@ function refuseWord(socket, nsp) {
 	}
 }
 
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string) => void}
+ */
+function computeScore(socket, nsp) {
+	return roomName => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.state !== "scoring")
+			return rlog(
+				roomName,
+				"Cannot compute score outside of the 'scoring' state",
+				{
+					level: "verbose"
+				}
+			)
+		if (state.king != socket.id)
+			return rlog(
+				roomName,
+				"Only the king can decide to compute the scores",
+				{
+					level: "verbose"
+				}
+			)
+
+		room.state = produce(
+			state,
+			draft => {
+				draft.state = "scoreboard"
+
+				const round = last(draft.rounds)
+				const wordsEntries = Object.entries(round.words)
+
+				/**
+				 * @param {string} word
+				 * @param {number} i
+				 */
+				function nbWordsAt(word, i) {
+					let total = 0
+					for (const [, l] of wordsEntries) {
+						if (l[i] == word) total++
+					}
+					return total
+				}
+
+				for (const [id, words] of wordsEntries) {
+					draft.players[id].score += words
+						.map((w, i) => Boolean(w) && nbWordsAt(w, i) == 1)
+						.reduce((acc, cur) => acc + cur, 0)
+				}
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+	}
+}
+
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 
 /**
@@ -481,7 +541,7 @@ function makeRoom(socket) {
 function makePlayer(name) {
 	return {
 		name,
-		points: 0
+		score: 0
 	}
 }
 

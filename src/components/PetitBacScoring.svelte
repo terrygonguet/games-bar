@@ -11,12 +11,36 @@
 	$: ids = Object.keys(round.words)
 	$: isKing = $state.king == socket.id
 	$: canRefuse = $state.everybodyCanRefuse || isKing
+	$: uniques = computeUniques(round.words)
 
 	function refuse(id, i) {
 		return function () {
 			if (canRefuse && confirm("⚠ Êtes vous sûr(e) ? Cette action ne peut pas être annulée ⚠"))
 				socket.emit("refuse_word", room, id, i)
 		}
+	}
+
+	function computeUniques(words) {
+		const uniquesEntries = [],
+			wordsEntries = Object.entries(words)
+
+		function nbWordsAt(word, i) {
+			let total = 0
+			for (const [, l] of wordsEntries) {
+				if (l[i] == word) total++
+			}
+			return total
+		}
+
+		for (const [id, list] of wordsEntries) {
+			uniquesEntries.push([id, list.map((w, i) => w && nbWordsAt(w, i) == 1)])
+		}
+
+		return Object.fromEntries(uniquesEntries)
+	}
+
+	function computeScores() {
+		socket.emit("compute_score", room)
 	}
 </script>
 
@@ -53,6 +77,7 @@ tr, th, td {
 							class:bg-blue-100={hovered == j}
 						>
 							{round.words[id][i]}
+							<span class="text-sm">{uniques[id][i] ? "✔️" : "⭕"}</span>
 							{#if canRefuse}
 								<button
 									class="absolute top-0 right-0 p-1 hidden group-hover:block text-xs"
@@ -68,6 +93,6 @@ tr, th, td {
 		</tbody>
 	</table>
 	{#if isKing}
-		<button class="btn my-4 mx-auto block">Calculer le score</button>
+		<button class="btn my-4 mx-auto block" on:click={computeScores}>Calculer le score</button>
 	{/if}
 </section>
