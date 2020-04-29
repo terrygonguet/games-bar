@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"~server": ["./src/server"],
+			"~tools": ["./src/tools"],
+			"~stores": ["./src/stores"],
+			"~components": ["./src/components"]
+		}
+	},
+	"exclude": ["node_modules", "__sapper__"]
+}
