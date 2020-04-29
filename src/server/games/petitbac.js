@@ -13,6 +13,7 @@ const { log, logRoom: rlog } = logger("petitbac")
  * @property {string} king
  * @property {"preparing"|"thinking"|"scoring"} state
  * @property {Round[]} rounds
+ * @property {boolean} everybodyCanRefuse
  */
 
 /**
@@ -54,11 +55,15 @@ export default function(nsp) {
 
 		socket.on("set_categories", setCategories(socket, nsp))
 
+		socket.on("set_refuse", setRefuse(socket, nsp))
+
 		socket.on("start_round", startRound(socket, nsp))
 
 		socket.on("finish_round", finishRound(socket, nsp))
 
 		socket.on("set_word", setWord(socket, nsp))
+
+		socket.on("refuse_word", refuseWord(socket, nsp))
 	})
 }
 
@@ -155,6 +160,7 @@ function leaveRoom(socket, nsp) {
 							)
 						}
 						delete draft.players[socket.id]
+						draft.rounds.forEach(r => delete r.words[socket.id])
 					},
 					p => nsp.to(roomName).emit("apply_patches", p)
 				)
@@ -247,6 +253,41 @@ function setCategories(socket, nsp) {
 /**
  * @param {SocketIO.Socket} socket
  * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string, value: boolean) => void}
+ */
+function setRefuse(socket, nsp) {
+	return (roomName, value) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.king !== socket.id)
+			return rlog(roomName, "Only the king can change this option", {
+				level: "verbose"
+			})
+		if (state.state !== "preparing")
+			return rlog(
+				roomName,
+				"This setting can only be changed in the 'preparing' state",
+				{
+					level: "verbose"
+				}
+			)
+
+		room.state = produce(
+			state,
+			draft => void (draft.everybodyCanRefuse = !!value),
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+
+		rlog(roomName, `Set the setting everybodyCanRefuse to ${!!value}`, {
+			level: "verbose"
+		})
+	}
+}
+
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
  * @returns {(roomName: string, categories: string[]) => void}
  */
 function startRound(socket, nsp) {
@@ -269,7 +310,13 @@ function startRound(socket, nsp) {
 				draft.state = "thinking"
 				const letter =
 					letters[Math.floor(Math.random() * letters.length)]
-				draft.rounds.push(makeRound(letter, Object.keys(draft.players)))
+				draft.rounds.push(
+					makeRound(
+						letter,
+						Object.keys(draft.players),
+						draft.categories.length
+					)
+				)
 				rlog(roomName, `Started a round with the letter ${letter}`, {
 					level: "verbose"
 				})
@@ -350,6 +397,48 @@ function setWord(socket, nsp) {
 	}
 }
 
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string, id: string, i: number) => void}
+ */
+function refuseWord(socket, nsp) {
+	return (roomName, id, i) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.state !== "scoring")
+			return rlog(
+				roomName,
+				"Cannot refuse a word outside of the 'scoring' state",
+				{
+					level: "verbose"
+				}
+			)
+		if (!state.everybodyCanRefuse && state.king != socket.id)
+			return rlog(
+				roomName,
+				"Only the king can refuse words when everybodyCanRefuse is false",
+				{
+					level: "verbose"
+				}
+			)
+		if (!(id in last(state.rounds).words))
+			return rlog(roomName, `ID ${id} isn't playing this round`, {
+				level: "verbose"
+			})
+
+		room.state = produce(
+			state,
+			draft => {
+				const round = last(draft.rounds)
+				round.words[id][i] = ""
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+	}
+}
+
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 
 /**
@@ -378,7 +467,8 @@ function makeRoom(socket) {
 				"Personnages historiques"
 			],
 			rounds: [],
-			king: socket.id
+			king: socket.id,
+			everybodyCanRefuse: true
 		},
 		sockets: [socket]
 	}
@@ -398,12 +488,15 @@ function makePlayer(name) {
 /**
  * @param {string} letter
  * @param {string[]} players
+ * @param {number} nbCategories
  * @returns {Round}
  */
-function makeRound(letter, players) {
+function makeRound(letter, players, nbCategories) {
 	return {
 		letter,
-		words: Object.fromEntries(players.map(p => [p, []])),
+		words: Object.fromEntries(
+			players.map(p => [p, Array(nbCategories).fill("")])
+		),
 		fastest: ""
 	}
 }

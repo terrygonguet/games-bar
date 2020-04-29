@@ -40,18 +40,18 @@
 	et <code class="rounded border bg-gray-200 px-1">Maj + Tab</code> sont
 	utiles pour passer d'une catégorie à une autre rapidement)
 </p>
-<table bind:this={table}>
+<table bind:this={table} class="relative">
 	<thead>
-		<tr>
-			<th class="border p-2">Catégories</th>
-			<th class="border p-2">{letter}</th>
+		<tr class="border-b bg-white sticky top-0 z-10">
+			<th class="p-2">Catégories</th>
+			<th class="p-2">{letter}</th>
 		</tr>
 	</thead>
 	<tbody>
 		{#each $state.categories as category, i}
-			<tr class="focus-within:bg-blue-100">
-				<td class="border p-2 text-center">{category}</td>
-				<td class="border p-2">
+			<tr class="focus-within:bg-blue-100 border-b">
+				<td class="p-2 text-center">{category}</td>
+				<td class="p-2">
 					<input
 						type="text"
 						class="focus:bg-blue-100"

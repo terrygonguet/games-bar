@@ -9,7 +9,9 @@
 	const socket = getSocket("petitbac")
 	const emit = createEventDispatcher()
 	let categories = $state.categories
-	let next, nextValue = ""
+	let next,
+		nextValue = "",
+		everybodyCanRefuse = $state.everybodyCanRefuse
 
 	$: nbPlayers = Object.keys($state.players).length
 
@@ -30,6 +32,10 @@
 				remove(i)()
 			}
 		}
+	}
+
+	function onChangeOption() {
+		socket.emit("set_refuse", room, everybodyCanRefuse)
 	}
 
 	function add() {
@@ -63,6 +69,15 @@
 </script>
 
 <section class="flex flex-col w-full md:max-w-lg pb-8 md:pb-16">
+	<h2 class="text-2xl font-semibold text-center m-4">Options</h2>
+	<label class="text-center">
+		Tout le monde peut refuser les mots
+		<input
+			type="checkbox"
+			bind:checked={everybodyCanRefuse}
+			on:change={onChangeOption}
+		/>
+	</label>
 	<h2 class="text-2xl font-semibold text-center m-4">Catégories</h2>
 	<p class="text-base text-gray-700 m-2 text-center">(Seul le 👑 peut modifier les catégories)</p>
 	{#each categories as category, i}
