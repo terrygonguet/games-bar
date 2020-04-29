@@ -28,7 +28,7 @@ export default function(app) {
 		})
 	})
 
-	for (const game in games) {
-		games[game](server.of("/" + game))
+	for (const game of games) {
+		game.handler(server.of("/" + game.path))
 	}
 }

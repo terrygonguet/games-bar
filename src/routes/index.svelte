@@ -23,10 +23,10 @@
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold mb-4">Available games:</h1>
 	<ul class="flex">
-		{#each games as game}
+		{#each games as { name, path }}
 			<li>
-				<a href="game/{game}">
-					<button class="btn m-4">{game}</button>
+				<a href="game/{path}">
+					<button class="btn m-4">{name}</button>
 				</a>
 			</li>
 		{:else}

@@ -61,3 +61,29 @@ export async function easyFetch(ctx, url, options) {
 	if (error) ctx.error(res.status, message)
 	else return data
 }
+
+/**
+ * @template T
+ * @param {T[]} arr
+ */
+export function last(arr) {
+	return arr[arr.length - 1]
+}
+
+/**
+ * @param {Function} fn
+ * @param {number} ms
+ * @param {Object} options
+ * @param {boolean=} options.useFirstArgs
+ */
+export function debounce(fn, ms, { useFirstArgs = false } = {}) {
+	let timeoutID, realArgs
+	return function(...args) {
+		if (realArgs === undefined || !useFirstArgs) realArgs = args
+		if (timeoutID) clearTimeout(timeoutID)
+		timeoutID = setTimeout(() => {
+			fn(...realArgs)
+			timeoutID = undefined
+		}, ms)
+	}
+}

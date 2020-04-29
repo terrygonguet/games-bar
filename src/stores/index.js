@@ -9,10 +9,15 @@ const socket = getSocket()
  * @param {string} room
  */
 export function makeStateFromSocket(socket, room) {
-	let store = readable(null, function(set) {
-		socket.emit("get_initial_state", room, set)
+	let state = null
+	let store = readable(state, function(set) {
+		socket.emit("get_initial_state", room, data => {
+			state = data
+			set(state)
+		})
 		function onApplyPatches(patches) {
-			set(applyPatches(get(store), patches))
+			state = applyPatches(state, patches)
+			set(state)
 		}
 		socket.on("apply_patches", onApplyPatches)
 		return () => socket.off("apply_patches", onApplyPatches)
