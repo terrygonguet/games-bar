@@ -2,6 +2,7 @@
 	import PetitBacPreparingKing from "~components/PetitBacPreparingKing"
 	import PetitBacPreparing from "~components/PetitBacPreparing"
 	import PetitBacThinking from "~components/PetitBacThinking"
+	import PetitBacScoring from "~components/PetitBacScoring"
 	import { getSocket } from "~tools"
 
 	export let state
@@ -29,5 +30,5 @@
 {:else if $state.state == "thinking"}
 	<PetitBacThinking {state} {room} />
 {:else if $state.state == "scoring"}
-	scoring
+	<PetitBacScoring {state} {room} />
 {/if}

@@ -2,32 +2,30 @@ import io from "socket.io"
 import { Deck, suits } from "./deck"
 import produce from "immer"
 import logger from "~server/logger"
+import { last } from "~tools"
 
 const { log, logRoom: rlog } = logger("petitbac")
 
 /**
  * @typedef {Object} State
- * @property {number} round
- * @property {number} time
  * @property {Object<string,Player>} players
  * @property {string[]} categories
- * @property {string[]} letters
  * @property {string} king
  * @property {"preparing"|"thinking"|"scoring"} state
+ * @property {Round[]} rounds
  */
 
 /**
  * @typedef {Object} Player
  * @property {number} points
- * @property {Round[]} rounds
  * @property {string} name
  */
 
 /**
  * @typedef {Object} Round
  * @property {string} letter
- * @property {string[]} words
- * @property {boolean[]} uniques
+ * @property {Object<string,string[]>} words
+ * @property {string} fastest
  */
 
 /**
@@ -57,6 +55,10 @@ export default function(nsp) {
 		socket.on("set_categories", setCategories(socket, nsp))
 
 		socket.on("start_round", startRound(socket, nsp))
+
+		socket.on("finish_round", finishRound(socket, nsp))
+
+		socket.on("set_word", setWord(socket, nsp))
 	})
 }
 
@@ -188,10 +190,6 @@ function chooseName(socket, nsp) {
 				if (socket.id in draft.players)
 					draft.players[socket.id].name = name
 				else draft.players[socket.id] = makePlayer(name)
-				if (draft.state != "preparing") {
-					const letter = draft.letters[draft.letters.length - 1]
-					draft.players[socket.id].rounds.push(makeRound(letter))
-				}
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
 		)
@@ -216,6 +214,14 @@ function setCategories(socket, nsp) {
 			return rlog(roomName, "Only the king can change the categories", {
 				level: "verbose"
 			})
+		if (state.state !== "preparing")
+			return rlog(
+				roomName,
+				"The categories can only be changed in the 'preparing' state",
+				{
+					level: "verbose"
+				}
+			)
 		if (
 			!Array.isArray(categories) ||
 			!categories.every(c => typeof c == "string")
@@ -241,7 +247,7 @@ function setCategories(socket, nsp) {
 /**
  * @param {SocketIO.Socket} socket
  * @param {SocketIO.Namespace} nsp
- * @returns {(roomName: string) => void}
+ * @returns {(roomName: string, categories: string[]) => void}
  */
 function startRound(socket, nsp) {
 	return (roomName, categories) => {
@@ -252,26 +258,92 @@ function startRound(socket, nsp) {
 			return rlog(roomName, "Only the king can start a round", {
 				level: "verbose"
 			})
+		if (state.state === "thinking")
+			return rlog(roomName, "The round has already started", {
+				level: "verbose"
+			})
 
 		room.state = produce(
 			state,
 			draft => {
 				draft.state = "thinking"
-				draft.round++
-				let unpicked = letters.filter(l => !draft.letters.includes(l))
-				if (unpicked.length == 0) {
-					draft.letters = []
-					unpicked = letters
-				}
-				const picked =
-					unpicked[Math.floor(Math.random() * unpicked.length)]
-				draft.letters.push(picked)
-				Object.values(draft.players).forEach(p =>
-					p.rounds.push(makeRound(picked))
-				)
-				rlog(roomName, `Started a round with the letter ${picked}`, {
+				const letter =
+					letters[Math.floor(Math.random() * letters.length)]
+				draft.rounds.push(makeRound(letter, Object.keys(draft.players)))
+				rlog(roomName, `Started a round with the letter ${letter}`, {
 					level: "verbose"
 				})
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+	}
+}
+
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string, words: string[]) => void}
+ */
+function finishRound(socket, nsp) {
+	return (roomName, words) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (!words.every(Boolean) && words.length == state.categories.length)
+			return rlog(
+				roomName,
+				"A player can only finish if they have a word for all categories",
+				{
+					level: "verbose"
+				}
+			)
+		if (state.state !== "thinking")
+			return rlog(
+				roomName,
+				"Cannot finish a round that hasn't started yet",
+				{
+					level: "verbose"
+				}
+			)
+
+		room.state = produce(
+			state,
+			draft => {
+				draft.state = "scoring"
+				const round = last(draft.rounds)
+				round.fastest = socket.id
+				round.words[socket.id] = words
+
+				rlog(roomName, `${socket.id} finished the round`, {
+					level: "verbose"
+				})
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+	}
+}
+
+/**
+ * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string, i: number, word: string) => void}
+ */
+function setWord(socket, nsp) {
+	return (roomName, i, word) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state } = room
+		if (state.state !== "thinking")
+			return rlog(roomName, "Cannot submit a word outside rounds", {
+				level: "verbose"
+			})
+
+		room.state = produce(
+			state,
+			draft => {
+				const round = last(draft.rounds)
+				if (!(socket.id in round.words)) round.words[socket.id] = []
+				round.words[socket.id][i] = word ? word.toString() : ""
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
 		)
@@ -287,7 +359,6 @@ const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 function makeRoom(socket) {
 	return {
 		state: {
-			round: 0,
 			state: "preparing",
 			players: {},
 			categories: [
@@ -306,7 +377,7 @@ function makeRoom(socket) {
 				"Plats",
 				"Personnages historiques"
 			],
-			letters: [],
+			rounds: [],
 			king: socket.id
 		},
 		sockets: [socket]
@@ -320,19 +391,19 @@ function makeRoom(socket) {
 function makePlayer(name) {
 	return {
 		name,
-		points: 0,
-		rounds: []
+		points: 0
 	}
 }
 
 /**
  * @param {string} letter
+ * @param {string[]} players
  * @returns {Round}
  */
-function makeRound(letter) {
+function makeRound(letter, players) {
 	return {
 		letter,
-		uniques: [],
-		words: []
+		words: Object.fromEntries(players.map(p => [p, []])),
+		fastest: ""
 	}
 }

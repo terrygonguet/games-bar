@@ -52,7 +52,7 @@
 	class="overflow-x-hidden flex flex-col items-center"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
-	<h1 class="text-4xl font-semibold text-center mt-4 md:my-8">Petit Bac - {room}</h1>
+	<h1 class="text-4xl font-semibold text-center my-4 md:my-8">Petit Bac - {room}</h1>
 	{#if $state}
 		{#if hasName}
 			<PetitBac {state} {room} />
