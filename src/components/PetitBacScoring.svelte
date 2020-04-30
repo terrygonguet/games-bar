@@ -22,17 +22,21 @@
 
 	function computeUniques(words) {
 		const uniquesEntries = [],
-			wordsEntries = Object.entries(words)
+			wordsEntries = Object.entries(words),
+			sanitized = wordsEntries.map(([id, words]) => [
+				id,
+				words.map(w => w.trim().toLocaleLowerCase())
+			])
 
 		function nbWordsAt(word, i) {
 			let total = 0
-			for (const [, l] of wordsEntries) {
+			for (const [, l] of sanitized) {
 				if (l[i] == word) total++
 			}
 			return total
 		}
 
-		for (const [id, list] of wordsEntries) {
+		for (const [id, list] of sanitized) {
 			uniquesEntries.push([id, list.map((w, i) => w && nbWordsAt(w, i) == 1)])
 		}
 
