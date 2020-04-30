@@ -494,22 +494,26 @@ function computeScore(socket, nsp) {
 
 				const round = last(draft.rounds)
 				const wordsEntries = Object.entries(round.words)
+				const sanitized = wordsEntries.map(([id, words]) => [
+					id,
+					words.map(w => w.trim().toLocaleLowerCase())
+				])
 
 				/**
 				 * @param {string} word
 				 * @param {number} i
 				 */
-				function nbWordsAt(word, i) {
+				function nbMatchesAt(word, i) {
 					let total = 0
-					for (const [, l] of wordsEntries) {
+					for (const [, l] of sanitized) {
 						if (l[i] == word) total++
 					}
 					return total
 				}
 
-				for (const [id, words] of wordsEntries) {
+				for (const [id, words] of sanitized) {
 					draft.players[id].score += words
-						.map((w, i) => Boolean(w) && nbWordsAt(w, i) == 1)
+						.map((w, i) => Boolean(w) && nbMatchesAt(w, i) == 1)
 						.reduce((acc, cur) => acc + cur, 0)
 				}
 			},
