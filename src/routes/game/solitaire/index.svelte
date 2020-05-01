@@ -15,7 +15,7 @@
 </svelte:head>
 
 <main
-	class="flex flex-col items-center pt-24"
+	class="flex flex-col items-center py-12 px-2"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold mb-4">Solitaire</h1>

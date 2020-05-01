@@ -15,7 +15,7 @@
 </svelte:head>
 
 <main
-	class="flex flex-col items-center pt-24"
+	class="flex flex-col items-center py-12 px-2"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold mb-4">Petit Bac</h1>
@@ -30,7 +30,7 @@
 			c'est le seul qui peut choisir de commencer un round et de passer à
 			l'étape suivante à la fin d'un round. Un round se déroule en 3 phases:
 		</p>
-		<ol class="my-4 list-decimal">
+		<ol class="my-4 list-decimal pl-8">
 			<li>Creusage de méninges</li>
 			<li>Édition des réponses</li>
 			<li>Tableau des scores</li>

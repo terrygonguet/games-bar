@@ -18,7 +18,7 @@
 </svelte:head>
 
 <main
-	class="flex-center"
+	class="flex flex-col items-center py-12"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold mb-4">Available games:</h1>

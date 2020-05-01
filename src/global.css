@@ -9,15 +9,21 @@ body {
 	min-height: 100vh;
 }
 
+#sapper {
+	display: grid;
+	grid-template-rows: 1fr 0 auto;
+	grid-template-columns: 1fr;
+}
+
+main:nth-child(2) {
+	display: none;
+}
+
 .flex-center {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
-}
-
-main {
-	@apply absolute w-full h-full;
 }
 
 .btn {
