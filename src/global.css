@@ -7,6 +7,7 @@
 html,
 body {
 	min-height: 100vh;
+	scrollbar-width: thin;
 }
 
 #sapper {
@@ -15,6 +16,7 @@ body {
 	grid-template-columns: 1fr;
 }
 
+/* Prevents a scrollbar flash when navigating */
 main:nth-child(2) {
 	display: none;
 }
