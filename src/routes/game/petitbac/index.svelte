@@ -22,10 +22,34 @@
 	<h2 class="text-2xl font-semibold my-4">Règles</h2>
 	<section class="max-w-1k text-justify">
 		<p class="my-4">
-			Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nihil itaque magnam nam veritatis quo dolore tempora, iste sunt temporibus dicta iure animi natus velit eaque? Cupiditate asperiores at sunt quidem.
+			This games is in French because my friends are.
 		</p>
 		<p class="my-4">
-			Tempor ad amet ea cillum aliqua consectetur cillum consequat eiusmod esse dolor fugiat. Commodo aute aliquip culpa magna quis. Dolore cillum ex aliquip anim.
+			Un petit bac classique. Le premier joueur dans une pièce est le 👑,
+			c'est le seul qui peut choisir les catégories avant de commencer et
+			c'est le seul qui peut choisir de commencer un round et de passer à
+			l'étape suivante à la fin d'un round. Un round se déroule en 3 phases:
+		</p>
+		<ol class="my-4 list-decimal">
+			<li>Creusage de méninges</li>
+			<li>Édition des réponses</li>
+			<li>Tableau des scores</li>
+		</ol>
+		<p class="my-4">
+			La première phase est évidente: c'est le jeu lui même. Une lettre est
+			tirée au hasard et chaque joueur dois trouver un mot par catégorie qui
+			commence par cette lettre. Une fois qu'un joueur a une réponse pour toutes
+			les catégories il peut terminer la phase et on passe à l'édition des réponses.
+		</p>
+		<p class="my-4">
+			Si une des réponses d'un joueur est invalide (ou que deux joueurs ont
+			donné le même mot avec une orthographe différente) on peut annuler les
+			réponses dans cette phase. Seul le 👑 peut avancer à la prochaine phase.
+		</p>
+		<p class="my-4">
+			La dernière phase est simplement un affichage des scores pendant lequel
+			le premier peut se moquer du manque d'organisation mentale des autres
+			joueurs. Encore une fois, seul le 👑 peut lancer le round suivant.
 		</p>
 	</section>
 	<form onsubmit="return false">
