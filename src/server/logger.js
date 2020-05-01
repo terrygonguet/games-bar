@@ -11,7 +11,7 @@ export default function logger(game, levels) {
 		levels = ["error", "warn", "info"]
 		if (process.dev) levels.push("verbose")
 	}
-	const enableColor = process.env.COLOR !== "false"
+	const enableColor = !["false", "0"].includes(process.env.COLOR)
 	const id = a => a
 	const l = levels.reduce((acc, cur) => Math.max(acc, cur.length), 0)
 	const ctx = new chalk.Instance({ level: 1 })

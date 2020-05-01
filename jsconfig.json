@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
+		"target": "ES6",
+		"baseUrl": "./",
 		"paths": {
 			"~server": ["./src/server"],
 			"~tools": ["./src/tools"],

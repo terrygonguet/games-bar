@@ -1,4 +1,4 @@
-import { readable, get } from "svelte/store"
+import { readable } from "svelte/store"
 import { getSocket } from "~tools"
 import { applyPatches } from "immer"
 
