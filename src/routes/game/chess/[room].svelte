@@ -11,8 +11,8 @@
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
 	import { makeStateFromSocket } from "~stores"
-	import ChessChooseSide from "~components/ChessChooseSide"
-	import ChessBoard from "~components/ChessBoard"
+	import ChessChooseSide from "~components/chess/ChessChooseSide"
+	import ChessBoard from "~components/chess/ChessBoard"
 
 	export let room
 
@@ -34,7 +34,7 @@
 	class="flex items-center flex-col overflow-x-hidden bg-green-800 text-white"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
-	<h1 class="text-4xl font-semibold text-center my-8">Chess - {room}</h1>
+	<h1 class="text-4xl font-semibold text-center mychess/-8">Chess - {room}</h1>
 	{#if $state}
 		{#if $state.state == "choosing"}
 			<ChessChooseSide {state} {room} />

@@ -1,9 +1,9 @@
 <script>
-	import PetitBacPreparingKing from "~components/PetitBacPreparingKing"
-	import PetitBacPreparing from "~components/PetitBacPreparing"
-	import PetitBacThinking from "~components/PetitBacThinking"
-	import PetitBacScoring from "~components/PetitBacScoring"
-	import PetitBacScoreboard from "~components/PetitBacScoreboard"
+	import PetitBacPreparingKing from "~components/petitbac/PetitBacPreparingKing"
+	import PetitBacPreparing from "~components/petitbac/PetitBacPreparing"
+	import PetitBacThinking from "~components/petitbac/PetitBacThinking"
+	import PetitBacScoring from "~components/petitbac/PetitBacScoring"
+	import PetitBacScoreboard from "~components/petitbac/PetitBacScoreboard"
 	import { getSocket } from "~tools"
 
 	export let state

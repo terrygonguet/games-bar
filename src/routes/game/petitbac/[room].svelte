@@ -11,7 +11,7 @@
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
 	import { makeStateFromSocket } from "~stores"
-	import PetitBac from "~components/PetitBac";
+	import PetitBac from "~components/petitbac/PetitBac";
 
 	export let room
 

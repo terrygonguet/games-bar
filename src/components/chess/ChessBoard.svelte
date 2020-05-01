@@ -1,7 +1,7 @@
 <script>
 	import { getSocket } from "~tools"
 	import produce from "immer"
-	import ChessTurnIndicator from "~components/ChessTurnIndicator";
+	import ChessTurnIndicator from "~components/chess/ChessTurnIndicator";
 
 	export let state
 	export let room
