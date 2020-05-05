@@ -188,7 +188,9 @@ module.exports = {
 			default: "1px",
 			"0": "0",
 			"2": "2px",
+			"3": "3px",
 			"4": "4px",
+			"6": "6px",
 			"8": "8px"
 		},
 		boxShadow: {
@@ -580,7 +582,9 @@ module.exports = {
 			"0": "0",
 			"45": "45deg",
 			"90": "90deg",
-			"180": "180deg"
+			"180": "180deg",
+			"270": "270deg",
+			"360": "360deg"
 		},
 		translate: (theme, { negative }) => ({
 			...theme("spacing"),
@@ -840,6 +844,32 @@ module.exports = {
 				},
 				".max-h-piece": {
 					maxHeight: `calc(var(--chess-scale) * var(--chess-piece))`
+				}
+			})
+		}),
+		plugin(({ addComponents }) => {
+			addComponents({
+				".escampe": {
+					backgroundImage: `url('/img/escampe.png')`,
+					width: 80,
+					height: 140,
+					imageRendering: "crisp-edges"
+				},
+				".unicorn-white": {
+					backgroundPositionX: 0,
+					backgroundPositionY: 0
+				},
+				".unicorn-black": {
+					backgroundPositionX: 80,
+					backgroundPositionY: 0
+				},
+				".paladin-white": {
+					backgroundPositionX: 0,
+					backgroundPositionY: 140
+				},
+				".paladin-black": {
+					backgroundPositionX: 80,
+					backgroundPositionY: 140
 				}
 			})
 		})

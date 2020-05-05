@@ -10,16 +10,25 @@
 	import { getSocket } from "~tools"
 	import { onMount } from "svelte"
 	import { writable } from "svelte/store"
-	import { makeStateFromSocket } from "~stores"
+	import { makeStateFromSocket, stateProp } from "~stores"
+	import ChooseSide from "~components/escampe/ChooseSide"
+	import PlacePieces from "~components/escampe/PlacePieces"
 
 	export let room
 
 	const socket = getSocket("escampe")
+	const components = [
+		ChooseSide,
+		PlacePieces,
+		PlacePieces,
+	]
 	let state = writable(null) // temp value
+	let phase
 
 	onMount(() => {
 		socket.emit("join", room)
 		state = makeStateFromSocket(socket, room)
+		phase = stateProp(state, "phase")
 		return () => socket.emit("leave", room)
 	})
 </script>
@@ -34,7 +43,7 @@
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">Escampe - {room}</h1>
 	{#if $state}
-		<pre>{JSON.stringify($state, null, 2)}</pre>
+		<svelte:component this={components[$phase]} {room} {state} />
 	{:else}
 		<p>Loading...</p>
 	{/if}

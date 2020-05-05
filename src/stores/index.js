@@ -1,4 +1,4 @@
-import { readable } from "svelte/store"
+import { readable, derived } from "svelte/store"
 import { getSocket } from "~tools"
 import { applyPatches } from "immer"
 
@@ -23,4 +23,8 @@ export function makeStateFromSocket(socket, room) {
 		return () => socket.off("apply_patches", onApplyPatches)
 	})
 	return store
+}
+
+export function stateProp(state, prop) {
+	return derived(state, $s => $s && $s[prop])
 }
