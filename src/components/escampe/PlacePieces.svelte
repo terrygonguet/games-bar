@@ -3,6 +3,7 @@
 	import { getSocket } from "~tools"
 	import Board from "~components/escampe/Board"
 	import Piece from "~components/escampe/Piece"
+	import Roster from "~components/escampe/Roster"
 
 	export let state
 	export let room
@@ -13,7 +14,7 @@
 	const rotation = stateProp(state, "rotation")
 	const toPlaceArr = stateProp(state, "toPlace")
 	const pieces = stateProp(state, "pieces")
-	let selected = -1
+	let selected = -1, selectedRank, isDone = false
 
 	$: side = $players.indexOf(socket.id)
 	$: isPlayer = side != -1
@@ -23,11 +24,6 @@
 	$: canPlace = canRotate || ($phase == 2 && isWhite)
 	$: toPlace = $toPlaceArr[side]
 
-	function classPiece(rank) {
-		if (rank) return isBlack ? "unicorn-black" : "unicorn-white"
-		else return isBlack ? "paladin-black" : "paladin-white"
-	}
-
 	function rotate(delta) {
 		return function () {
 			socket.emit("set_rotation", room, ($rotation + delta + 4) % 4)
@@ -35,22 +31,21 @@
 	}
 
 	function place({ detail: i }) {
-		if (selected == -1) return
-		socket.emit("place_piece", room, selected > 4 ? 1 : 0, i)
+		if (!canPlace) return
+		socket.emit("place_piece", room, selectedRank, i)
 		selected = -1
+	}
+
+	function done() {
+		isDone = true
+		socket.emit("done_placing", room)
 	}
 </script>
 
-<style>
-.selected {
-	filter: saturate(2);
-}
-</style>
-
 <section class="flex flex-col justify-center">
-	<Board rotation={$rotation} on:click={place}>
+	<Board rotation={$rotation} on:click={place} scale={75} mirror={isWhite}>
 		{#each $pieces as piece (piece)}
-			<Piece {...piece} />
+			<Piece {...piece} mirror={isWhite} />
 		{/each}
 	</Board>
 	{#if canRotate}
@@ -61,27 +56,15 @@
 		</div>
 	{/if}
 	<h2 class="text-4xl text-center">
-		{canPlace ? "Place your pieces" : "Your opponent is placing his pieces"}
+		{canPlace ? "Place your pieces" : "Your opponent is placing their pieces"}
 	</h2>
-	{#if canPlace}
-		<ol
-			class="flex justify-center transform scale-75"
-			style="--transform-translate-y: -12.5%"
-		>
-			{#each Array(toPlace.paladin) as _, i}
-				<li
-					class="m-4 escampe cursor-pointer {classPiece(0)}"
-					class:selected={selected == i}
-					on:click={() => (selected = i)}
-				></li>
-			{/each}
-			{#if toPlace.unicorn}
-				<li
-					class="m-4 escampe cursor-pointer {classPiece(1)}"
-					class:selected={selected == 5}
-					on:click={() => (selected = 5)}
-				></li>
-			{/if}
-		</ol>
+	{#if !isDone}
+		<Roster
+			{...toPlace}
+			bind:selected
+			player={side}
+			bind:selectedRank
+			scale={75}
+			on:done={done} />
 	{/if}
 </section>

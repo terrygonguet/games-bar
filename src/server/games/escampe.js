@@ -224,7 +224,7 @@ function setRotation(socket, nsp) {
 /**
  * @param {SocketIO.Socket} socket
  * @param {SocketIO.Namespace} nsp
- * @returns {(roomName: string, rank: 0|1, i: number) => void}
+ * @returns {(roomName: string, rank: -1|0|1, i: number) => void}
  */
 function placePiece(socket, nsp) {
 	return (roomName, rank, i) => {
@@ -233,8 +233,7 @@ function placePiece(socket, nsp) {
 		const { state, sockets } = room
 		if (
 			typeof rank != "number" ||
-			rank < 0 ||
-			rank > 1 ||
+			Math.abs(rank) > 1 ||
 			typeof i != "number" ||
 			i < 0 ||
 			i > 36
@@ -281,21 +280,46 @@ function placePiece(socket, nsp) {
 			state,
 			draft => {
 				const replace = draft.pieces.find(p => p.position == i)
-				if (replace && replace.rank != rank) {
-					draft.toPlace[player][rank ? "paladin" : "unicorn"]++
-					draft.toPlace[player][rank ? "unicorn" : "paladin"]--
-					replace.rank = rank
-				} else if (!replace) {
+				if (replace) {
+					if (rank == -1) {
+						draft.toPlace[player][
+							replace.rank ? "unicorn" : "paladin"
+						]++
+						draft.pieces = draft.pieces.filter(p => p !== replace)
+						rlog(
+							roomName,
+							`Player ${player} picked up a ${
+								replace.rank ? "queen" : "knight"
+							} at ${i}`,
+							{ level: "verbose" }
+						)
+					} else if (rank != replace.rank) {
+						draft.toPlace[player][
+							replace.rank ? "unicorn" : "paladin"
+						]++
+						draft.toPlace[player][rank ? "unicorn" : "paladin"]--
+						rlog(
+							roomName,
+							`Player ${player} replaced a ${
+								replace.rank ? "queen" : "knight"
+							} at ${i} with a ${rank ? "queen" : "knight"}`,
+							{ level: "verbose" }
+						)
+						replace.rank = rank
+					}
+				} else if (rank != -1) {
 					draft.toPlace[player][rank ? "unicorn" : "paladin"]--
 					draft.pieces.push({ position: i, rank, side: player })
+					rlog(
+						roomName,
+						`Player ${player} placed a ${
+							rank ? "queen" : "knight"
+						} at ${i}`,
+						{ level: "verbose" }
+					)
 				}
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
-		)
-		rlog(
-			roomName,
-			`Player ${player} placed a ${rank ? "queen" : "knight"} at ${i}`,
-			{ level: "verbose" }
 		)
 	}
 }

@@ -22,8 +22,8 @@
 
 	onMount(() => {
 		if (process.dev) {
-			socket.emit("choose_side", room, 0)
 			socket.emit("choose_side", room, 1)
+			socket.emit("choose_side", room, 0)
 		}
 	})
 </script>
