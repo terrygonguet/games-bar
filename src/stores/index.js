@@ -26,5 +26,8 @@ export function makeStateFromSocket(socket, room) {
 }
 
 export function stateProp(state, prop) {
-	return derived(state, $s => $s && $s[prop])
+	let prev
+	return derived(state, ($s, set) => {
+		if ($s && prev != $s[prop]) set((prev = $s[prop]))
+	})
 }
