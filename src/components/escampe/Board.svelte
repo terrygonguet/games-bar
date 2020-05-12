@@ -1,5 +1,6 @@
 <script>
 	import { createEventDispatcher } from "svelte"
+	import { flip } from "~tools"
 
 	export let rotation = 0
 	export let scale = 100
@@ -26,16 +27,11 @@
 
 	$: board = boards[(rotation + (mirror ? 2 : 0)) % 4]
 	$: piecesIndexes = pieces.map(p => mirror ? flip(p.position) : p.position)
-	$: isLit = board.map(isPlayable)
+	$: isLit = board.map(isPlayable, piecesIndexes)
 
 	function isPlayable(c, i) {
 		if (placementMode) return i >= 24
 		if (piecesIndexes.includes(i)) return lastPlayed == 0 || lastPlayed == c
-	}
-
-	function flip(i) {
-		let x = i % 6, y = Math.floor(i / 6)
-		return (5 - y) * 6 + (5 - x)
 	}
 
 	function onClick(i) {

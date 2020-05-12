@@ -1,6 +1,7 @@
 import io from "socket.io"
 import produce from "immer"
 import logger from "~server/logger"
+import { Grid, BiAStarFinder } from "pathfinding"
 
 const { log, logRoom: rlog } = logger("escampe")
 
@@ -11,7 +12,6 @@ const { log, logRoom: rlog } = logger("escampe")
  * @property {Piece[]} pieces
  * @property {0|1} turn
  * @property {0|1|2|3} lastPlayed
- * @property {number} selected
  * @property {[ToPlace, ToPlace]} toPlace
  * @property {0|1|2|3|4|5} phase
  *     0: waiting for players,
@@ -64,9 +64,7 @@ export default function(nsp) {
 
 		socket.on("done_placing", donePlacing(socket, nsp))
 
-		// socket.on("select", select(socket, nsp))
-
-		// socket.on("move", move(socket, nsp))
+		socket.on("move", move(socket, nsp))
 	})
 }
 
@@ -394,6 +392,77 @@ function move(socket, nsp) {
 		const room = rooms.get(roomName)
 		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
 		const { state, sockets } = room
+		const player = state.players.indexOf(socket.id)
+		if (player == -1)
+			return rlog(roomName, `${socket.id} is not a player`, {
+				level: "verbose"
+			})
+		if (player != state.turn)
+			return rlog(roomName, `It is not Player ${player}'s turn`, {
+				level: "verbose"
+			})
+		if (
+			typeof from != "number" ||
+			from < 0 ||
+			from >= 36 ||
+			typeof to != "number" ||
+			to < 0 ||
+			to >= 36
+		)
+			return rlog(
+				roomName,
+				`Invalid data supplied to placePiece by ${socket.id}`,
+				{ level: "verbose" }
+			)
+		const fromCell = boards[state.rotation][from]
+		if (state.lastPlayed != 0 && fromCell != state.lastPlayed)
+			return rlog(
+				roomName,
+				`Last move was a ${state.lastPlayed} but piece at ${from} is on a ${fromCell}`,
+				{ level: "verbose" }
+			)
+
+		const fromPiece = state.pieces.find(p => p.position == from)
+		if (!fromPiece)
+			return rlog(roomName, `There is no piece to move at ${from}`, {
+				level: "verbose"
+			})
+		const toPiece = state.pieces.find(p => p.position == to)
+		if (toPiece && toPiece.rank != 1)
+			return rlog(roomName, `Cannot take a piece other than a queen`, {
+				level: "verbose"
+			})
+
+		const [x1, y1] = i2xy(from)
+		const [x2, y2] = i2xy(to)
+		const grid = new Grid(6, 6)
+		state.pieces.forEach(({ position: i }) => {
+			if (i != from && i != to) grid.setWalkableAt(...i2xy(i), false)
+		})
+		const path = finder.findPath(x1, y1, x2, y2, grid)
+
+		// path includes start position
+		if (path.length - 1 != fromCell)
+			return rlog(roomName, `${from} to ${to} is an invalid move`, {
+				level: "verbose"
+			})
+
+		room.state = produce(
+			state,
+			draft => {
+				const fromPiece = draft.pieces.find(p => p.position == from)
+				const toPiece = draft.pieces.find(p => p.position == to)
+				if (toPiece) {
+					draft.pieces.splice(draft.pieces.indexOf(toPiece), 1)
+					// TODO: win
+				}
+				fromPiece.position = to
+				// TODO: skip turns
+				draft.turn = (draft.turn + 1) % 2
+				draft.lastPlayed = boards[draft.rotation][to]
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
 	}
 }
 
@@ -410,7 +479,6 @@ function makeRoom(socket) {
 			turn: 0,
 			lastPlayed: 0,
 			phase: 0,
-			selected: -1,
 			toPlace: [
 				{ paladin: 5, unicorn: 1 },
 				{ paladin: 5, unicorn: 1 }
@@ -458,3 +526,5 @@ const boards = [
 		"[2,2,3,1,2,2,1,3,1,3,1,3,3,1,2,2,3,1,2,3,1,3,1,2,2,1,3,1,3,2,1,3,2,2,1,3]"
 	)
 ]
+
+const finder = new BiAStarFinder({ diagonalMovement: false })

@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class="absolute transform transition-transform duration-500 ease-in-out mx-4 -mt-2 pointer-events-none"
+	class="absolute transform transition-transform duration-500 ease-in-out mx-4 -mt-4 pointer-events-none"
 	style="--transform-translate-x:{rx * 140}px;--transform-translate-y:{ry * 140}px;width:140px;height:140px"
 >
 	<div class="escampe {className} m-auto"></div>

@@ -13,6 +13,7 @@
 	const pieces = stateProp(state, "pieces")
 	const turn = stateProp(state, "turn")
 	const lastPlayed = stateProp(state, "lastPlayed")
+	let selected = -1
 
 	$: side = $players.indexOf(socket.id)
 	$: isPlayer = side != -1
@@ -22,7 +23,12 @@
 	$: playablePieces = $pieces.filter(p => p.side == $turn)
 
 	function onClick({ detail: i }) {
-		console.log(i)
+		if (!isYourTurn) return
+		if (selected == -1) selected = i
+		else {
+			socket.emit("move", room, selected, i)
+			selected = -1
+		}
 	}
 </script>
 
