@@ -16,7 +16,7 @@ const { log, logRoom: rlog } = logger("escampe")
  * @property {0|1|2|3|4|5} phase
  *     0: waiting for players,
  *     1: choose board orientation & black places,
- *     2: white places
+ *     2: white places,
  *     3: playing,
  *     4: end
  */
@@ -377,6 +377,10 @@ function donePlacing(socket, nsp) {
 		rlog(roomName, `Player ${player} is done placing pieces`, {
 			level: "verbose"
 		})
+		if (room.state.phase > 2)
+			rlog(roomName, `The game has started!`, {
+				level: "verbose"
+			})
 	}
 }
 

@@ -24,6 +24,8 @@
 	$: canPlace = canRotate || ($phase == 2 && isWhite)
 	$: toPlace = $toPlaceArr[side]
 
+	$: process.dev && onChangeCanPlace(canPlace)
+
 	function rotate(delta) {
 		return function () {
 			socket.emit("set_rotation", room, ($rotation + delta + 4) % 4)
@@ -40,10 +42,29 @@
 		isDone = true
 		socket.emit("done_placing", room)
 	}
+
+	// dev utility
+	function onChangeCanPlace() {
+		if (canPlace) {
+			let i = 0
+			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
+			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
+			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
+			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
+			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
+			socket.emit("place_piece", room, 1, (i++) + (isBlack ? 24 : 0))
+			setTimeout(() => socket.emit("done_placing", room), 50)
+		}
+	}
 </script>
 
 <section class="flex flex-col justify-center">
-	<Board rotation={$rotation} on:click={place} scale={75} mirror={isWhite} highlight={canPlace}>
+	<Board
+		rotation={$rotation}
+		on:click={place} scale={75}
+		mirror={isWhite}
+		placementMode={canPlace}
+	>
 		{#each $pieces as piece (piece)}
 			<Piece {...piece} mirror={isWhite} />
 		{/each}

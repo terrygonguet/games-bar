@@ -13,6 +13,7 @@
 	import { makeStateFromSocket, stateProp } from "~stores"
 	import ChooseSide from "~components/escampe/ChooseSide"
 	import PlacePieces from "~components/escampe/PlacePieces"
+	import Playing from "~components/escampe/Playing"
 
 	export let room
 
@@ -21,9 +22,12 @@
 		ChooseSide,
 		PlacePieces,
 		PlacePieces,
+		Playing,
 	]
 	let state = writable(null) // temp value
 	let phase
+
+	$: process.dev && console.log($state)
 
 	onMount(() => {
 		socket.emit("join", room)
