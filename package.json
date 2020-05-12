@@ -22,6 +22,7 @@
 		"chalk": "^4.0.0",
 		"dotenv": "^8.2.0",
 		"immer": "^6.0.4",
+		"pathfinding": "^0.4.18",
 		"polka": "^0.5.2",
 		"serialize-javascript": "^2.1.2",
 		"sirv": "^0.4.0",
