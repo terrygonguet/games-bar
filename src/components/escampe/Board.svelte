@@ -4,6 +4,7 @@
 	export let rotation = 0
 	export let scale = 100
 	export let mirror = false
+	export let highlight = false
 
 	const boards = [
 		JSON.parse(
@@ -39,6 +40,18 @@
 	grid-template-columns: repeat(6, 140px);
 	grid-template-rows: repeat(6, 140px);
 }
+
+.cell {
+	border-color: wheat;
+}
+
+.circle {
+	border-color: inherit;
+}
+
+.highlight {
+	border-color: yellow;
+}
 </style>
 
 <div class="flex-center" style="width:{scale * 8.84}px;height:{scale * 8.84}px;">
@@ -48,12 +61,12 @@
 		style="--transform-scale-x:{scale}%;--transform-scale-y:{scale}%;"
 	>
 		{#each board as cell, i}
-			<div class="p-1" on:click={onClick(i)}>
-				<div class="p-1 border-3 border-white rounded-full h-full">
+			<div class="p-1 cell" on:click={onClick(i)} class:highlight={highlight && i >= 24}>
+				<div class="p-1 border-3 rounded-full h-full circle">
 					{#if cell >= 2}
-						<div class="p-1 border-3 border-white rounded-full h-full">
+						<div class="p-1 border-3 rounded-full h-full circle">
 							{#if cell == 3}
-								<div class="p-1 border-3 border-white rounded-full h-full"></div>
+								<div class="p-1 border-3 rounded-full h-full circle"></div>
 							{/if}
 						</div>
 					{/if}

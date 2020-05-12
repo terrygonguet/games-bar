@@ -43,7 +43,7 @@
 </script>
 
 <section class="flex flex-col justify-center">
-	<Board rotation={$rotation} on:click={place} scale={75} mirror={isWhite}>
+	<Board rotation={$rotation} on:click={place} scale={75} mirror={isWhite} highlight={canPlace}>
 		{#each $pieces as piece (piece)}
 			<Piece {...piece} mirror={isWhite} />
 		{/each}

@@ -257,6 +257,12 @@ function placePiece(socket, nsp) {
 				`It is not the turn of player ${player} to place pieces`,
 				{ level: "verbose" }
 			)
+		if ((player == 1 && i < 24) || (player == 0 && i > 11))
+			return rlog(
+				roomName,
+				`Player ${player} cannot place a piece at ${i}`,
+				{ level: "verbose" }
+			)
 
 		const toPlace = state.toPlace[player]
 		const replace = state.pieces.find(p => p.position == i)
