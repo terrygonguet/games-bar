@@ -23,8 +23,6 @@
 	$: board = boards[($rotation + (isWhite ? 2 : 0)) % 4]
 	$: playablePieces = $pieces.filter(p => p.side == $turn)
 
-	$: console.log(playablePieces)
-
 	function onClick({ detail: i }) {
 		if (!isYourTurn) return
 		if (selected == -1) selected = i

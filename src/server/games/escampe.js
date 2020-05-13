@@ -433,13 +433,11 @@ function move(socket, nsp) {
 				level: "verbose"
 			})
 
-		const [x1, y1] = i2xy(from)
-		const [x2, y2] = i2xy(to)
 		const grid = new Grid(6, 6)
 		state.pieces.forEach(({ position: i }) => {
 			if (i != from && i != to) grid.setWalkableAt(...i2xy(i), false)
 		})
-		const path = finder.findPath(x1, y1, x2, y2, grid)
+		const path = finder.findPath(...i2xy(from), ...i2xy(to), grid)
 
 		// path includes start position
 		if (path.length - 1 != fromCell)
@@ -453,13 +451,15 @@ function move(socket, nsp) {
 				const fromPiece = draft.pieces.find(p => p.position == from)
 				const toPiece = draft.pieces.find(p => p.position == to)
 				if (toPiece) {
+					// we know `toPiece` is a queen because the function
+					// would have already stopped otherwise
 					draft.pieces.splice(draft.pieces.indexOf(toPiece), 1)
 					draft.phase++
 				}
 				fromPiece.position = to
-				// TODO: skip turns
-				draft.turn = (draft.turn + 1) % 2
 				draft.lastPlayed = boards[draft.rotation][to]
+				if (!isDeadlock(draft)) draft.turn = (draft.turn + 1) % 2
+				else draft.lastPlayed = 0
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
 		)
@@ -512,6 +512,20 @@ function eqPos([x1, y1], [x2, y2]) {
 	return x1 == x2 && y1 == y2
 }
 
+/**
+ * @param {State} state
+ */
+function isDeadlock(state) {
+	const board = boards[state.rotation]
+	const playable = state.pieces.filter(
+		p =>
+			p.side != state.turn &&
+			(state.lastPlayed == 0 || state.lastPlayed == board[p.position])
+	)
+	return playable.length == 0
+}
+
+/** @type {number[][]} */
 const boards = [
 	JSON.parse(
 		"[1,2,2,3,1,2,3,1,3,1,3,2,2,3,1,2,1,3,2,1,3,2,3,1,1,3,1,3,1,2,3,2,2,1,3,2]"
