@@ -1,7 +1,7 @@
 <script>
 	import { stateProp } from "~stores"
 	import { getSocket } from "~tools"
-	import Board from "~components/escampe/Board"
+	import Board, { boards } from "~components/escampe/Board"
 	import Piece from "~components/escampe/Piece"
 
 	export let state
@@ -20,7 +20,10 @@
 	$: isYourTurn = isPlayer && side == $turn
 	$: isWhite = isPlayer && side == 0
 	$: isBlack = isPlayer && side == 1
+	$: board = boards[($rotation + (isWhite ? 2 : 0)) % 4]
 	$: playablePieces = $pieces.filter(p => p.side == $turn)
+
+	$: console.log(playablePieces)
 
 	function onClick({ detail: i }) {
 		if (!isYourTurn) return
@@ -40,6 +43,8 @@
 		scale={75} mirror={isWhite}
 		pieces={playablePieces}
 		lastPlayed={$lastPlayed}
+		{selected}
+		glow={isYourTurn}
 	>
 		{#each $pieces as piece (piece)}
 			<Piece {...piece} mirror={isWhite} />

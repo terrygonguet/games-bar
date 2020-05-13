@@ -64,6 +64,7 @@
 		on:click={place} scale={75}
 		mirror={isWhite}
 		placementMode={canPlace}
+		glow={canPlace}
 	>
 		{#each $pieces as piece (piece)}
 			<Piece {...piece} mirror={isWhite} />

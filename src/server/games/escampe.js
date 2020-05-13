@@ -454,7 +454,7 @@ function move(socket, nsp) {
 				const toPiece = draft.pieces.find(p => p.position == to)
 				if (toPiece) {
 					draft.pieces.splice(draft.pieces.indexOf(toPiece), 1)
-					// TODO: win
+					draft.phase++
 				}
 				fromPiece.position = to
 				// TODO: skip turns
