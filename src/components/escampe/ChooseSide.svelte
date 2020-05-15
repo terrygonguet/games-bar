@@ -20,12 +20,12 @@
 		}
 	}
 
-	onMount(() => {
-		if (process.dev) {
-			socket.emit("choose_side", room, 0)
-			socket.emit("choose_side", room, 1)
-		}
-	})
+	// onMount(() => {
+	// 	if (process.dev) {
+	// 		socket.emit("choose_side", room, 0)
+	// 		socket.emit("choose_side", room, 1)
+	// 	}
+	// })
 </script>
 
 <style>
@@ -35,7 +35,7 @@ button:disabled {
 }
 </style>
 
-<section class="bg-blue-500 mt-24 p-4 text-white w-full flex flex-col justify-center">
+<section class="bg-teal-400 mt-24 p-4 w-full flex flex-col justify-center">
 	{#if !hasChosen}
 		<h2 class="text-4xl text-center">Choose a side</h2>
 		<ol class="flex justify-center">

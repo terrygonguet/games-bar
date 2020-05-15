@@ -3,6 +3,7 @@
 	import { getSocket } from "~tools"
 	import Board, { boards } from "~components/escampe/Board"
 	import Piece from "~components/escampe/Piece"
+	import EndBanner from "~components/escampe/EndBanner"
 
 	export let state
 	export let room
@@ -13,15 +14,20 @@
 	const pieces = stateProp(state, "pieces")
 	const turn = stateProp(state, "turn")
 	const lastPlayed = stateProp(state, "lastPlayed")
+	const rematch = stateProp(state, "rematch")
+	const phase = stateProp(state, "phase")
 	let selected = -1
 
+	$: gameEnd = $phase == 4
 	$: side = $players.indexOf(socket.id)
 	$: isPlayer = side != -1
-	$: isYourTurn = isPlayer && side == $turn
+	$: isYourTurn = !gameEnd && isPlayer && side == $turn
 	$: isWhite = isPlayer && side == 0
 	$: isBlack = isPlayer && side == 1
 	$: board = boards[($rotation + (isWhite ? 2 : 0)) % 4]
-	$: playablePieces = $pieces.filter(p => p.side == $turn)
+	$: playablePieces = gameEnd ? [] : $pieces.filter(p => p.side == $turn)
+	$: lastQueen = gameEnd ? $pieces.find(p => p.rank == 1) : []
+	$: youWin = gameEnd && $players[lastQueen.side] == socket.id
 
 	function onClick({ detail: i }) {
 		if (!isYourTurn) return
@@ -30,6 +36,10 @@
 			socket.emit("move", room, selected, i)
 			selected = -1
 		}
+	}
+
+	function wantRematch() {
+		socket.emit("want_rematch", room)
 	}
 </script>
 
@@ -44,11 +54,16 @@
 		{selected}
 		glow={isYourTurn}
 	>
-		{#each $pieces as piece (piece)}
+		{#each $pieces as piece, i (piece.id)}
 			<Piece {...piece} mirror={isWhite} />
 		{/each}
 	</Board>
-	{#if isYourTurn}
-		<h2 class="text-4xl text-center">It is your turn</h2>
+	{#if !gameEnd && isPlayer}
+		<h2 class="text-2xl text-center" class:text-4xl={isYourTurn}>
+			It is your {isYourTurn ? "" : "opponent's"} turn
+		</h2>
+	{/if}
+	{#if gameEnd}
+		<EndBanner {youWin} rematch={$rematch} {side} {isPlayer} on:rematch={wantRematch} />
 	{/if}
 </section>

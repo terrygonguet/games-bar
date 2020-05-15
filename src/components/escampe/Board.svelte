@@ -32,7 +32,7 @@
 
 	$: board = boards[(rotation + (mirror ? 2 : 0)) % 4]
 	$: piecesIndexes = pieces.map(p => mirror ? flip(p.position) : p.position)
-	$: isLit = board.map(isPlayable, piecesIndexes)
+	$: isLit = board.map(isPlayable, piecesIndexes, placementMode) // explicit dependencies
 	$: realSelected = mirror ? flip(selected) : selected
 
 	function isPlayable(c, i) {
@@ -55,7 +55,7 @@
 }
 
 #glow {
-	box-shadow: 0 0 30px 7px orange;
+	box-shadow: 0 0 30px 7px rebeccapurple;
 	animation: glow 2s ease-out infinite alternate;
 	top: 1px;
 	left: 1px;

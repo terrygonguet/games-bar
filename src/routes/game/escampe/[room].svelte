@@ -23,6 +23,7 @@
 		PlacePieces,
 		PlacePieces,
 		Playing,
+		Playing,
 	]
 	let state = writable(null) // temp value
 	let phase
@@ -42,7 +43,7 @@
 </svelte:head>
 
 <main
-	class="flex items-center flex-col"
+	class="flex items-center flex-col bg-teal-500 text-white"
 	in:fade={{ duration: 200, delay: 200 }}
 	out:fade={{ duration: 200 }}>
 	<h1 class="text-4xl font-semibold text-center mb-8">Escampe - {room}</h1>

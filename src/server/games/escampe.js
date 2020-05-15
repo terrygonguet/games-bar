@@ -13,6 +13,7 @@ const { log, logRoom: rlog } = logger("escampe")
  * @property {0|1} turn
  * @property {0|1|2|3} lastPlayed
  * @property {[ToPlace, ToPlace]} toPlace
+ * @property {[boolean, boolean]} rematch
  * @property {0|1|2|3|4|5} phase
  *     0: waiting for players,
  *     1: choose board orientation & black places,
@@ -26,6 +27,7 @@ const { log, logRoom: rlog } = logger("escampe")
  * @property {number} position
  * @property {0|1} rank
  * @property {0|1} side
+ * @property {number} id
  */
 
 /**
@@ -65,6 +67,8 @@ export default function(nsp) {
 		socket.on("done_placing", donePlacing(socket, nsp))
 
 		socket.on("move", move(socket, nsp))
+
+		socket.on("want_rematch", wantRematch(socket, nsp))
 	})
 }
 
@@ -313,7 +317,12 @@ function placePiece(socket, nsp) {
 					}
 				} else if (rank != -1) {
 					draft.toPlace[player][rank ? "unicorn" : "paladin"]--
-					draft.pieces.push({ position: i, rank, side: player })
+					draft.pieces.push({
+						position: i,
+						rank,
+						side: player,
+						id: draft.pieces.length
+					})
 					rlog(
 						roomName,
 						`Player ${player} placed a ${
@@ -468,6 +477,43 @@ function move(socket, nsp) {
 
 /**
  * @param {SocketIO.Socket} socket
+ * @param {SocketIO.Namespace} nsp
+ * @returns {(roomName: string) => void}
+ */
+function wantRematch(socket, nsp) {
+	return (roomName, angle) => {
+		const room = rooms.get(roomName)
+		if (!room) return log(`Invalid room ${roomName}`, { level: "error" })
+		const { state, sockets } = room
+		if (state.phase != 4)
+			return rlog(
+				roomName,
+				`Can't rematch before the end of the current game`,
+				{ level: "verbose" }
+			)
+		const player = state.players.indexOf(socket.id)
+		if (player == -1)
+			return rlog(roomName, `${socket.id} is not a player`, {
+				level: "verbose"
+			})
+
+		room.state = produce(
+			state,
+			draft => {
+				draft.rematch[player] = true
+				if (draft.rematch.every(Boolean)) {
+					const clean = makeRoom(socket).state
+					Object.keys(clean).forEach(k => (draft[k] = clean[k]))
+				}
+			},
+			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+		rlog(roomName, `Player ${player} wants a rematch`, { level: "verbose" })
+	}
+}
+
+/**
+ * @param {SocketIO.Socket} socket
  * @returns {Room}
  */
 function makeRoom(socket) {
@@ -482,7 +528,8 @@ function makeRoom(socket) {
 			toPlace: [
 				{ paladin: 5, unicorn: 1 },
 				{ paladin: 5, unicorn: 1 }
-			]
+			],
+			rematch: [false, false]
 		},
 		sockets: [socket]
 	}

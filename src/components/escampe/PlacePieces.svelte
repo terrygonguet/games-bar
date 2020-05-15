@@ -24,7 +24,7 @@
 	$: canPlace = canRotate || ($phase == 2 && isWhite)
 	$: toPlace = $toPlaceArr[side]
 
-	$: process.dev && onChangeCanPlace(canPlace)
+	// $: process.dev && onChangeCanPlace(canPlace)
 
 	function rotate(delta) {
 		return function () {
@@ -44,19 +44,26 @@
 	}
 
 	// dev utility
-	function onChangeCanPlace() {
-		if (canPlace) {
-			let i = 0
-			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
-			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
-			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
-			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
-			socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 0))
-			socket.emit("place_piece", room, 1, (i++) + (isBlack ? 24 : 0))
-			setTimeout(() => socket.emit("done_placing", room), 50)
-		}
-	}
+	// function onChangeCanPlace() {
+	// 	if (canPlace) {
+	// 		let i = 0
+	// 		socket.emit("set_rotation", room, 1)
+	// 		socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 6))
+	// 		socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 6))
+	// 		socket.emit("place_piece", room, 1, (i++) + (isBlack ? 24 : 6))
+	// 		socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 6))
+	// 		socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 6))
+	// 		socket.emit("place_piece", room, 0, (i++) + (isBlack ? 24 : 6))
+	// 		setTimeout(() => socket.emit("done_placing", room), 50)
+	// 	}
+	// }
 </script>
+
+<style>
+button {
+	filter: hue-rotate(190deg);
+}
+</style>
 
 <section class="flex flex-col justify-center">
 	<Board

@@ -60,6 +60,22 @@ main:nth-child(2) {
 	@apply bg-red-600;
 }
 
+.btn-warning {
+	@apply bg-orange-500;
+}
+
+.btn-warning:hover {
+	@apply bg-orange-400;
+}
+
+.btn-warning:active {
+	@apply bg-orange-600;
+}
+
+.btn-warning:disabled {
+	@apply bg-orange-600;
+}
+
 .inpt {
 	@apply border px-4 py-2 rounded;
 }
