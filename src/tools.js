@@ -87,3 +87,9 @@ export function debounce(fn, ms, { useFirstArgs = false } = {}) {
 		}, ms)
 	}
 }
+
+export function flip(i) {
+	let x = i % 6,
+		y = Math.floor(i / 6)
+	return (5 - y) * 6 + (5 - x)
+}
