@@ -94,7 +94,7 @@
 	<div
 		id="board"
 		class="p-4 bg-red-900 border-6 border-black relative rounded transform"
-		style="--transform-scale-x:{scale}%;--transform-scale-y:{scale}%;"
+		style="--transform-scale-x:{scale / 100};--transform-scale-y:{scale / 100};"
 	>
 		{#each board as cell, i}
 			<div

@@ -14,9 +14,9 @@
 	$: selectedRank = selected == -1 ? -1 : (selected >= paladin ? 1 : 0)
 	$: done = unicorn + paladin == 0
 	$: style =
-		`--transform-translate-y: -${(100 - scale) / 2}%;
-		--transform-scale-x: ${scale}%;
-		--transform-scale-y: ${scale}%;`
+		`--transform-translate-y: -${scale / 200}%;
+		--transform-scale-x: ${scale / 100};
+		--transform-scale-y: ${scale / 100};`
 
 	function classPiece(rank) {
 		if (rank) return isBlack ? "unicorn-black" : "unicorn-white"
