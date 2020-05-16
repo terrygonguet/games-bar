@@ -32,7 +32,7 @@
 
 
 {#if done}
-	<button class="btn m-8" on:click={() => emit("done")}>Done!</button>
+	<button class="btn btn-warning m-8" on:click={() => emit("done")}>Done!</button>
 {:else}
 	<ol
 		class="flex justify-center transform"

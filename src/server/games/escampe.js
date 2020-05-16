@@ -5,6 +5,8 @@ import { Grid, BiAStarFinder } from "pathfinding"
 
 const { log, logRoom: rlog } = logger("escampe")
 
+let counter = 0 // simple IDs
+
 /**
  * @typedef {Object} State
  * @property {[string, string]} players
@@ -262,7 +264,7 @@ function placePiece(socket, nsp) {
 		if ((player == 1 && i < 24) || (player == 0 && i > 11))
 			return rlog(
 				roomName,
-				`Player ${player} cannot place a piece at ${i}`,
+				`Player ${player} cannot place a piece at ${i2xy(i)}`,
 				{ level: "verbose" }
 			)
 
@@ -298,7 +300,7 @@ function placePiece(socket, nsp) {
 							roomName,
 							`Player ${player} picked up a ${
 								replace.rank ? "queen" : "knight"
-							} at ${i}`,
+							} at ${i2xy(i)}`,
 							{ level: "verbose" }
 						)
 					} else if (rank != replace.rank) {
@@ -310,7 +312,9 @@ function placePiece(socket, nsp) {
 							roomName,
 							`Player ${player} replaced a ${
 								replace.rank ? "queen" : "knight"
-							} at ${i} with a ${rank ? "queen" : "knight"}`,
+							} at ${i2xy(i)} with a ${
+								rank ? "queen" : "knight"
+							}`,
 							{ level: "verbose" }
 						)
 						replace.rank = rank
@@ -321,13 +325,13 @@ function placePiece(socket, nsp) {
 						position: i,
 						rank,
 						side: player,
-						id: draft.pieces.length
+						id: counter++
 					})
 					rlog(
 						roomName,
 						`Player ${player} placed a ${
 							rank ? "queen" : "knight"
-						} at ${i}`,
+						} at ${i2xy(i)}`,
 						{ level: "verbose" }
 					)
 				}
@@ -427,15 +431,21 @@ function move(socket, nsp) {
 		if (state.lastPlayed != 0 && fromCell != state.lastPlayed)
 			return rlog(
 				roomName,
-				`Last move was a ${state.lastPlayed} but piece at ${from} is on a ${fromCell}`,
+				`Last move was a ${state.lastPlayed} but piece at ${i2xy(
+					from
+				)} is on a ${fromCell}`,
 				{ level: "verbose" }
 			)
 
 		const fromPiece = state.pieces.find(p => p.position == from)
 		if (!fromPiece)
-			return rlog(roomName, `There is no piece to move at ${from}`, {
-				level: "verbose"
-			})
+			return rlog(
+				roomName,
+				`There is no piece to move at ${i2xy(from)}`,
+				{
+					level: "verbose"
+				}
+			)
 		const toPiece = state.pieces.find(p => p.position == to)
 		if (toPiece && toPiece.rank != 1)
 			return rlog(roomName, `Cannot take a piece other than a queen`, {
@@ -450,9 +460,13 @@ function move(socket, nsp) {
 
 		// path includes start position
 		if (path.length - 1 != fromCell)
-			return rlog(roomName, `${from} to ${to} is an invalid move`, {
-				level: "verbose"
-			})
+			return rlog(
+				roomName,
+				`${i2xy(from)} to ${i2xy(to)} is an invalid move`,
+				{
+					level: "verbose"
+				}
+			)
 
 		room.state = produce(
 			state,
@@ -471,6 +485,10 @@ function move(socket, nsp) {
 				else draft.lastPlayed = 0
 			},
 			p => nsp.to(roomName).emit("apply_patches", p)
+		)
+		rlog(
+			roomName,
+			`Player ${player} moved a piece from ${i2xy(from)} to ${i2xy(to)}`
 		)
 	}
 }
