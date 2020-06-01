@@ -41,7 +41,7 @@ button:disabled {
 		<ol class="flex justify-center">
 			<li class="m-4">
 				<button
-					class="p-2 border rounded bg-blue-300 hover:bg-blue-200"
+					class="p-2 border rounded bg-blue-300 hover:bg-blue-200 transition-color ease-in-out duration-300"
 					disabled={!!$players[0]}
 					on:click={choose(0)}
 				>
@@ -50,7 +50,7 @@ button:disabled {
 			</li>
 			<li class="m-4">
 				<button
-					class="p-2 border rounded bg-blue-300 hover:bg-blue-200"
+					class="p-2 border rounded bg-blue-300 hover:bg-blue-200 transition-color ease-in-out duration-300"
 					disabled={!!$players[1]}
 					on:click={choose(1)}
 				>
