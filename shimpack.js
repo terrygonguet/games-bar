@@ -1,65 +1,8 @@
-const PurgeCSS = require("@fullhuman/postcss-purgecss")
 const fs = require("fs").promises
 const postcss = require("postcss")
 
 const dev = process.argv[2] == "development"
-
-const purgeCSSPlugin = PurgeCSS({
-	content: [
-		"./src/**/*.svelte",
-		"./src/template-master.html",
-		"./blogdata/*.json"
-	],
-	fontFace: true,
-	defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
-	extractors: [
-		{
-			extractor: require("purgecss-from-svelte"),
-			extensions: ["svelte"]
-		}
-	],
-	whitelist: [
-		"suit-diamonds",
-		"suit-hearts",
-		"suit-clubs",
-		"suit-spades",
-		"rank-1",
-		"rank-2",
-		"rank-3",
-		"rank-4",
-		"rank-5",
-		"rank-6",
-		"rank-7",
-		"rank-8",
-		"rank-9",
-		"rank-10",
-		"rank-11",
-		"rank-12",
-		"rank-13",
-		"card-back",
-		"card",
-		"piece",
-		"white-king",
-		"white-queen",
-		"white-bishop",
-		"white-rook",
-		"white-knight",
-		"white-pawn",
-		"black-king",
-		"black-queen",
-		"black-bishop",
-		"black-rook",
-		"black-knight",
-		"black-pawn",
-		"bg-yellow-900",
-		"bg-orange-400",
-		"escampe",
-		"unicorn-white",
-		"unicorn-black",
-		"paladin-white",
-		"paladin-black"
-	]
-})
+if (!dev) process.env.NODE_ENV = "production"
 
 /**
  * Builds the template.html for Sapper
@@ -73,7 +16,6 @@ async function shimTemplate() {
 	let plugins = [
 		require("tailwindcss"),
 		require("autoprefixer"),
-		!dev && purgeCSSPlugin,
 		!dev && require("cssnano")()
 	].filter(Boolean)
 	let { css } = await postcss(plugins).process(tailwind, {
