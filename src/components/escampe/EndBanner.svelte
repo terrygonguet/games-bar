@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte"
 	import { fade } from "svelte/transition"
 
-	export let youWin = true
+	export let lastQueen = { side: 0 }
 	export let rematch = [false, false]
 	export let side = 0
 	export let isPlayer = true
@@ -10,6 +10,7 @@
 	const emit = createEventDispatcher()
 
 	$: opponentWantsRematch = rematch[side ? 0 : 1]
+	$: youWin = side != -1 && side == lastQueen.side
 </script>
 
 <style>
@@ -35,6 +36,6 @@ div {
 			<button class="btn btn-warning text-xl" on:click={() => emit("rematch")}>Yes!</button>
 		{/if}
 	{:else}
-		<h2 class="text-4xl font-bold">The {side ? "black" : "white"} player won!</h2>
+		<h2 class="text-4xl font-bold">The {lastQueen.side ? "Black" : "White"} player won!</h2>
 	{/if}
 </div>

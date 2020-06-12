@@ -27,7 +27,6 @@
 	$: board = boards[($rotation + (isWhite ? 2 : 0)) % 4]
 	$: playablePieces = gameEnd ? [] : $pieces.filter(p => p.side == $turn)
 	$: lastQueen = gameEnd ? $pieces.find(p => p.rank == 1) : []
-	$: youWin = gameEnd && $players[lastQueen.side] == socket.id
 
 	function onClick({ detail: i }) {
 		if (!isYourTurn) return
@@ -58,12 +57,20 @@
 			<Piece {...piece} mirror={isWhite} />
 		{/each}
 	</Board>
-	{#if !gameEnd && isPlayer}
-		<h2 class="text-2xl text-center" class:text-4xl={isYourTurn}>
-			It is your {isYourTurn ? "" : "opponent's"} turn
+
+	{#if isPlayer}
+		{#if !gameEnd}
+			<h2 class="text-2xl text-center" class:text-4xl={isYourTurn}>
+				It is your {isYourTurn ? "" : "opponent's"} turn
+			</h2>
+		{/if}
+	{:else if !gameEnd}
+		<h2 class="text-2xl text-center">
+			It is {$turn ? "Black" : "White"}'s turn
 		</h2>
 	{/if}
+
 	{#if gameEnd}
-		<EndBanner {youWin} rematch={$rematch} {side} {isPlayer} on:rematch={wantRematch} />
+		<EndBanner {lastQueen} rematch={$rematch} {side} {isPlayer} on:rematch={wantRematch} />
 	{/if}
 </section>

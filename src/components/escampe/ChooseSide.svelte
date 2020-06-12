@@ -44,6 +44,7 @@ button:disabled {
 					class="p-2 border rounded bg-blue-300 hover:bg-blue-200 transition-color ease-in-out duration-300"
 					disabled={!!$players[0]}
 					on:click={choose(0)}
+					title="White"
 				>
 					<div class="escampe unicorn-white" />
 				</button>
@@ -53,6 +54,7 @@ button:disabled {
 					class="p-2 border rounded bg-blue-300 hover:bg-blue-200 transition-color ease-in-out duration-300"
 					disabled={!!$players[1]}
 					on:click={choose(1)}
+					title="Black"
 				>
 					<div class="escampe unicorn-black" />
 				</button>

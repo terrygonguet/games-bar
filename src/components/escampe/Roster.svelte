@@ -26,7 +26,17 @@
 
 <style>
 .selected {
-	filter: saturate(2);
+	outline-style: solid;
+	outline-offset: 0.25rem;
+	outline-width: medium;
+}
+
+.unicorn-black, .paladin-black {
+	outline-color: white;
+}
+
+.unicorn-white, .paladin-white {
+	outline-color: black;
 }
 </style>
 

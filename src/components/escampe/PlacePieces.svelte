@@ -77,6 +77,7 @@ button {
 			<Piece {...piece} mirror={isWhite} />
 		{/each}
 	</Board>
+
 	{#if canRotate}
 		<div class="flex justify-center items-center text-xl">
 			<button class="p-2 m-2" on:click={rotate(-1)}>↪️</button>
@@ -84,10 +85,18 @@ button {
 			<button class="p-2 m-2" on:click={rotate(1)}>↩️</button>
 		</div>
 	{/if}
-	<h2 class="text-4xl text-center">
-		{canPlace ? "Place your pieces" : "Your opponent is placing their pieces"}
-	</h2>
-	{#if !isDone}
+
+	{#if isPlayer}
+		<h2 class="text-4xl text-center">
+			{canPlace ? "Place your pieces" : "Your opponent is placing their pieces"}
+		</h2>
+	{:else}
+		<h2 class="text-4xl text-center">
+			{$phase == 1 ? "Black" : "White"} is placing their pieces
+		</h2>
+	{/if}
+
+	{#if !isDone && isPlayer}
 		<Roster
 			{...toPlace}
 			bind:selected
