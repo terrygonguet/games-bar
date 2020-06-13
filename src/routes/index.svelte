@@ -39,8 +39,10 @@ ul {
 		</h1>
 		<div id="shadow" class="w-full h-full z-10 absolute top-0 left-0" />
 		<picture>
+			<source srcset="img/hero-640.webp 640w, img/hero-768.webp 768w, img/hero-1280.webp 1280w, img/hero-1440.webp 1440w, img/hero-1920.webp 1920w, img/hero.webp 3800w" type="image/webp">
+			<source srcset="img/hero-640.jpg 640w, img/hero-768.jpg 768w, img/hero-1280.jpg 1280w, img/hero-1440.jpg 1440w, img/hero-1920.jpg 1920w, img/hero.jpg 3800w" type="image/jpeg">
 			<img
-				src="img/hero.jpg"
+				src="img/hero-768.jpg"
 				alt="Checkerboard and Playing Cards (1915) by Juan Gris"
 				class="w-full h-full object-cover absolute top-0 left-0 z-0 opacity-75 select-none"
 			>

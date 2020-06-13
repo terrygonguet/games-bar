@@ -590,7 +590,7 @@ function isDeadlock(state) {
 	return playable.length == 0
 }
 
-/** @type {number[][]} */
+/** @type {number[][]} precomputed board orientations, going clockwise */
 const boards = [
 	JSON.parse(
 		"[1,2,2,3,1,2,3,1,3,1,3,2,2,3,1,2,1,3,2,1,3,2,3,1,1,3,1,3,1,2,3,2,2,1,3,2]"
