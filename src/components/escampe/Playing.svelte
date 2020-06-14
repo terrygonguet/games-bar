@@ -16,7 +16,7 @@
 	const lastPlayed = stateProp(state, "lastPlayed")
 	const rematch = stateProp(state, "rematch")
 	const phase = stateProp(state, "phase")
-	let selected = -1
+	let selected = -1, notification
 
 	$: gameEnd = $phase == 4
 	$: side = $players.indexOf(socket.id)
@@ -27,6 +27,9 @@
 	$: board = boards[($rotation + (isWhite ? 2 : 0)) % 4]
 	$: playablePieces = gameEnd ? [] : $pieces.filter(p => p.side == $turn)
 	$: lastQueen = gameEnd ? $pieces.find(p => p.rank == 1) : []
+
+	// ding when somebody plays
+	$: ding($lastPlayed)
 
 	function onClick({ detail: i }) {
 		if (!isYourTurn) return
@@ -40,10 +43,16 @@
 	function wantRematch() {
 		socket.emit("want_rematch", room)
 	}
+
+	function ding() {
+		if (!notification || document.hasFocus() || !isYourTurn) return
+		notification.play()
+	}
 </script>
 
-
 <section class="flex flex-col justify-center">
+	<audio src="sound/ding.mp3" preload="auto" bind:this={notification}></audio>
+
 	<Board
 		rotation={$rotation}
 		on:click={onClick}
