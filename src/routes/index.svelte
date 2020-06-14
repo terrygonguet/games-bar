@@ -18,6 +18,10 @@ ul {
 	grid-gap: 1rem;
 }
 
+li {
+	box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.7);
+}
+
 .escampe-gradient {
 	background: linear-gradient(-90deg, #38B2AC, #4FD1C5);
 }
@@ -54,7 +58,7 @@ ul {
 			Welcome to the Games Bar, we got games!
 		</h2>
 		<ul class="w-full">
-			<li class="col-span-2 relative escampe-gradient transform transition-transform ease-in-out duration-300 hover:scale-105 border border-black">
+			<li class="col-span-2 relative escampe-gradient transform transition-transform ease-in-out duration-300 hover:scale-105">
 				<a href="game/escampe" class="w-full h-full block p-4">
 					<h3 class="text-2xl">Escampe</h3>
 					<p class="text-base mt-2">"Blitz Chess"</p>
@@ -64,14 +68,14 @@ ul {
 					</div>
 				</a>
 			</li>
-			<li class="col-span-2 relative transform transition-transform ease-in-out duration-300 hover:scale-105 border border-black">
+			<li class="col-span-2 relative transform transition-transform ease-in-out duration-300 hover:scale-105">
 				<a href="game/solitaire" class="w-full h-full block p-4">
 					<h3 class="text-2xl">Chess</h3>
 					<p class="text-base mt-2">"Old but gold"</p>
 					<div class="piece black-knight absolute bottom-0 right-0" />
 				</a>
 			</li>
-			<li class="col-span-2 relative bg-green-800 transform transition-transform ease-in-out duration-300 hover:scale-105 border border-black">
+			<li class="col-span-2 relative bg-green-800 transform transition-transform ease-in-out duration-300 hover:scale-105">
 				<a href="game/solitaire" class="w-full h-full block p-4">
 					<h3 class="text-2xl">Solitaire</h3>
 					<p class="text-base mt-2">"Wait this isn't Klondike"</p>
@@ -83,7 +87,7 @@ ul {
 					</div>
 				</a>
 			</li>
-			<li class="col-span-2 relative transform transition-transform ease-in-out duration-300 hover:scale-105 border border-black">
+			<li class="col-span-2 relative transform transition-transform ease-in-out duration-300 hover:scale-105">
 				<a href="game/solitaire" class="w-full h-full block p-4">
 					<h3 class="text-2xl">
 						Petit Bac
