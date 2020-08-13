@@ -24,7 +24,7 @@
 		"immer": "^6.0.9",
 		"pathfinding": "^0.4.18",
 		"polka": "^0.5.2",
-		"serialize-javascript": "^2.1.2",
+		"serialize-javascript": "^3.1.0",
 		"sirv": "^0.4.6",
 		"socket.io": "^2.3.0",
 		"socket.io-client": "^2.3.0"
